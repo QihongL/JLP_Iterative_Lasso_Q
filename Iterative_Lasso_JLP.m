@@ -3,16 +3,20 @@ clear;
 
 %% load the data
 load('jlp_metadata.mat');
-load(('jlp02.mat'),'X');
-SubNum = 2;
+load(('jlp04.mat'),'X');
 
+%% Set the subject Number
+SubNum = 4;
+
+%% Prepration
 % Inidices for testing and training set
 CVBLOCKS = metadata(SubNum).CVBLOCKS;
-% Row labels
+% Row labels: 
 Y = metadata(SubNum).TrueFaces;
 
 
-iterLasso(X,Y,CVBLOCKS,1)
+%% Run iterative Lasso
+[ hit, final, lasso, ridge, used, USED ] = iterLasso(X,Y,CVBLOCKS,SubNum);
 
 
 

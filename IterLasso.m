@@ -1,4 +1,4 @@
-function [ output_args ] = iterLasso( X, Y, CVBLOCKS, SubNum )
+function [ hit, final, lasso, ridge, used, USED ] = iterLasso( X, Y, CVBLOCKS, SubNum )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -62,7 +62,7 @@ while true
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
-        test.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
+        lasso.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
         
         % Releveling 
         opts = glmnetSet();
@@ -74,12 +74,12 @@ while true
         fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record releveling accuracy
         r.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-        r.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
+        ridge.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
         
         
 
         % Keeping track of which set of voxels were used in each cv block
-%         if ttest(test.accuracy, chance, 'Tail', 'right') == 1
+%         if ttest(lasso.accuracy, chance, 'Tail', 'right') == 1
 %             used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 %         end
                 
@@ -94,7 +94,7 @@ while true
 
     % Record the results, including 
     % 1) hit.accuracy: the accuracy for the correspoinding cv block        
-    hit.accuracy(numIter, :) = test.accuracy;            
+    hit.accuracy(numIter, :) = lasso.accuracy;            
     % 2) hit.all : how many voxels have been selected        
     hit.all(numIter, :) = sum(used,2);
     % 3) hit.current: how many voxels have been selected in current
@@ -115,7 +115,7 @@ while true
 
     
     % Test classification accuracy aganist chance 
-    [t,p] = ttest(test.accuracy, chance, 'Tail', 'right');
+    [t,p] = ttest(lasso.accuracy, chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
         numSig = numSig + 1;
@@ -125,9 +125,9 @@ while true
     end
     
     disp('The accuracy for each CV: ');
-    disp(num2str(test.accuracy));
-    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy))]);
-    disp(['Releveling accuracy using ridge: ' num2str(mean(r.accuracy))])   
+    disp(num2str(lasso.accuracy));
+    disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy))]);
+    disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy))])   
     
     disp('Number of voxels that were selected by Lasso (cumulative):')
     disp(hit.all(numIter,:))   

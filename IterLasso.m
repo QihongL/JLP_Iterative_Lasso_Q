@@ -1,18 +1,11 @@
-%% Try the 2nd subject using iterative Lasso!
-% Later on, I would like to change this into a more general version that
-% runs on every subject. (One major difference is num of voxels)
-clear;
-
-%% load the data
-load('jlp_metadata.mat');
-load(('jlp02.mat'),'X');
-
-SubNum = 2;
-
-%% Z normalization (It has no effect on the result of the analysis)
-% mu = mean(mean(X));
-% sd = std(reshape(X, size(X,1) * size(X,2), 1));
-% X = (X - mu)./ sd;
+function [ output_args ] = iterLasso( X, Y, CVBLOCKS, SubNum )
+%% Iterative Lasso
+% This function preform iterative Lasso
+% It needs the following inputs: 
+% % % X: The data set
+% % % Y: The row labels
+% % % CVBLOCKS: The cv indices
+% % % SubNum: The subject number 
 
 
 %% Prepare for iterative lasso
@@ -22,10 +15,6 @@ nvoxels = size(X,2);
 k = 10;
 % The size for the testing set 
 test.size = size(X,1)/k;
-% Inidices for testing and training set
-CVBLOCKS = metadata(SubNum).CVBLOCKS;
-% Row labels
-Y = metadata(SubNum).TrueFaces;
 % Keeping track of the number of iteration
 numIter = 0;
 % Keeping track of number of significant iteration
@@ -48,16 +37,14 @@ while true
     for CV = 1:k    
         textprogressbar(CV * 10);
 
-        % Test set
+        % Find the holdout set
         FINAL_HOLDOUT = CVBLOCKS(:,CV);
-
         % CV Indices for cvglmnet
         CV2 = CVBLOCKS(~FINAL_HOLDOUT,(1:k)~=CV); 
         fold_id = sum(bsxfun(@times,double(CV2),1:9),2);    
 
-       % Subset the data, choose only used voxels
+        % Subset the data, choose only used voxels
         Xiter = X(:,~used(CV,:));
-
         % Subset Training and testing data 
         Xtrain = Xiter(~FINAL_HOLDOUT,:);
         Xtest = Xiter(FINAL_HOLDOUT,:);
@@ -67,34 +54,42 @@ while true
         % Use Lasso
         opts = glmnetSet();
         opts.alpha = 1;
-
         % Fit lasso with cv
         fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-
         % Pick the best lambda
         opts.lambda = fitObj_cv.lambda_min;
-
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
-
-        % Record the prediction
+        % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         test.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
         
-        % Releveling
+        % Releveling 
+        opts = glmnetSet();
         opts.alpha = 0;
+        % Choose lambda
+        fitObj_cv_ridge = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
+        opts.lambda = fitObj_cv_ridge.lambda_min;
+        % Fitting ridge regression
         fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        % Record releveling accuracy
         r.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
         r.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
         
+        
+
         % Keeping track of which set of voxels were used in each cv block
+%         if ttest(test.accuracy, chance, 'Tail', 'right') == 1
+%             used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
+%         end
+                
         used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 
     end
     textprogressbar('Done.\n') 
    
 
-    % Take a snapshot, find out which voxels were being used currently
+    % Take a snapshot, find out all voxels were used at this time point
     USED{numIter} = used;
 
     % Record the results, including 
@@ -169,15 +164,15 @@ for CV = 1:k
     Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
     Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
  
-    % Fit cvglmnet, in order to find the best lambda
+    % Fit cvglmnet using ridge (find the best lambda)
     opts = glmnetSet(); 
-    
     opts.alpha = 0;    
     fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
     
-    % Set the lambda value, using the numerical best
-    opts.lambda = fitObj_cvFinal.lambda_min;
-
+    
+    % Use the best lambda value
+%     opts.lambda = fitObj_cvFinal.lambda_min;
+    opts.lambda = fitObj_cvFinal.lambda_1se;
 
     % Fit glmnet 
     fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
@@ -195,3 +190,5 @@ disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
 disp(final.accuracy)
 disp('Mean accuracy: ')
 disp(mean(final.accuracy))
+end
+

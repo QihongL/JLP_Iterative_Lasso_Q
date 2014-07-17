@@ -1,37 +1,37 @@
 %% Try the 2nd subject using iterative Lasso!
 % Later on, I would like to change this into a more general version that
 % runs on every subject. (One major difference is num of voxels)
-    clear;
+clear;
 
 %% load the data
 load('jlp_metadata.mat');
 load(('jlp01.mat'),'X');
 
-Sub = 1;
+SubNum = 1;
 
-%% Get some parameters
+%% Z normalization (It has no effect on the result of the analysis)
+% mu = mean(mean(X));
+% sd = std(reshape(X, size(X,1) * size(X,2), 1));
+% X = (X - mu)./ sd;
+
+
+%% Prepare for iterative lasso
 % The number of voxels
 nvoxels = size(X,2);
-% The number of trials
-time = size(X,1);
 % The number of CV blocks
 k = 10;
 % The size for the testing set 
 test.size = size(X,1)/k;
 % Inidices for testing and training set
-CVBLOCKS = metadata(Sub).CVBLOCKS;
-
+CVBLOCKS = metadata(SubNum).CVBLOCKS;
 % Row labels
-Y = metadata(Sub).TrueFaces;
-
-
-%% Prepare for iterative lasso
+Y = metadata(SubNum).TrueFaces;
 % Keeping track of the number of iteration
 numIter = 0;
 % Keeping track of number of significant iteration
 numSig = 0;
-% Counter for Stopping criterion 
-% the loop stops when t-test insignificant twice
+% Stopping criterion 
+% Iterative Lasso stops when t-test insignificant twice
 STOPPING_COUNTER = 0;
 STOPPING_RULE = 2;  
 chance = 2/3 + 1e-4;
@@ -40,27 +40,23 @@ used = false(k,nvoxels);
 
     
     
-    
 %% Start iterative Lasso 
     
 while true
-    
     numIter = numIter + 1;
     textprogressbar(['Iterative Lasso: ' num2str(numIter) ' -> ' ]);
-    
-    for i = 1:k    
-%         disp(i);
-        textprogressbar(i * 10);
+    for CV = 1:k    
+        textprogressbar(CV * 10);
 
         % Test set
-        FINAL_HOLDOUT = CVBLOCKS(:,i);
+        FINAL_HOLDOUT = CVBLOCKS(:,CV);
 
         % CV Indices for cvglmnet
-        CV2 = CVBLOCKS(~FINAL_HOLDOUT,(1:k)~=i); 
+        CV2 = CVBLOCKS(~FINAL_HOLDOUT,(1:k)~=CV); 
         fold_id = sum(bsxfun(@times,double(CV2),1:9),2);    
 
        % Subset the data, choose only used voxels
-        Xiter = X(:,~used(i,:));
+        Xiter = X(:,~used(CV,:));
 
         % Subset Training and testing data 
         Xtrain = Xiter(~FINAL_HOLDOUT,:);
@@ -82,11 +78,17 @@ while true
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
 
         % Record the prediction
-        test.prediction(:,i) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
-        test.accuracy(:,i) = mean(Ytest == test.prediction(:,i))';
-
+        test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
+        test.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
+        
+        % Releveling
+        opts.alpha = 0;
+        fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        r.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+        r.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
+        
         % Keeping track of which set of voxels were used in each cv block
-        used( i, ~used(i,:) ) = fitObj.beta ~= 0;
+        used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 
     end
     textprogressbar('Done.\n') 
@@ -107,14 +109,15 @@ while true
     else
         hit.current(numIter,:) = hit.all(numIter,: ) - hit.all(numIter - 1,:) ;
     end
+    
+ 
 
     %% Printing some results
     % Keep track of the number of iteration.
 %     disp(['Iteration number: ' num2str(numIter)]);
     
     % Display the average accuracy for this procedure 
-    %     disp(['The accuracy for each CV: ' num2str(test.accuracy) ] );
-    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy))]);
+
     
     % Test classification accuracy aganist chance 
     [t,p] = ttest(test.accuracy, chance, 'Tail', 'right');
@@ -125,6 +128,11 @@ while true
     else
         disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]) 
     end
+    
+    disp('The accuracy for each CV: ');
+    disp(num2str(test.accuracy));
+    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy))]);
+    disp(['Releveling accuracy using ridge: ' num2str(mean(r.accuracy))])   
     
     disp('Number of voxels that were selected by Lasso (cumulative):')
     disp(hit.all(numIter,:))   
@@ -137,7 +145,7 @@ while true
         STOPPING_COUNTER = STOPPING_COUNTER + 1;
 
         if STOPPING_COUNTER == STOPPING_RULE;
-        % stop, if t-test = 0 twice
+        % stop, if t-test = 0 n times, where n = STOPPING_RULE
             disp(' ')
             disp('* Iterative Lasso was terminated, as the classification accuracy is at chance level.')
             disp(' ')
@@ -151,30 +159,32 @@ while true
 end
 
 %% Pooling solution and fitting ridge regression
-
-for i = 1:k
+disp('Pooling solution and fitting ridge')
+for CV = 1:k
     
     % Subset: find voxels that were selected 
-    Xfinal = X( :, USED{numIter - STOPPING_RULE}(i,:) );
+    Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
     % Split the final data set to testing set and training set 
-    Xtest = Xfinal(CVBLOCKS(:,i) ,:);
-    Xtrain = Xfinal(~CVBLOCKS(:,i) ,:);
+    Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
+    Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
  
     % Fit cvglmnet, in order to find the best lambda
-    opts = glmnetSet();    
+    opts = glmnetSet(); 
+    
+    opts.alpha = 0;    
     fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
     
     % Set the lambda value, using the numerical best
     opts.lambda = fitObj_cvFinal.lambda_min;
-    opts.alpha = 0;
+
 
     % Fit glmnet 
     fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
 
     % Calculating accuracies
-    final.prediction(:,i) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  
-    final.accuracy(i) = mean(Ytest == final.prediction(:,i))';
+    final.prediction(:,CV) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  
+    final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
 
 end
 

@@ -5,10 +5,10 @@ clear;
 
 %% load the data
 load('jlp_metadata.mat');
-load(('jlp04.mat'),'X');
+load(('jlp02.mat'),'X');
 
 %% Set the subject Number
-SubNum = 4;
+SubNum = 2;
 
 %% Prepration
 % Inidices for testing and training set
@@ -18,9 +18,9 @@ Y = metadata(SubNum).TrueFaces;
 
 
 %% Z normalization (It has no effect on the result of the analysis)
-mu = mean(mean(X));
-sd = std(reshape(X, size(X,1) * size(X,2), 1));
-X = (X - mu)./ sd;
+% mu = mean(mean(X));
+% sd = std(reshape(X, size(X,1) * size(X,2), 1));
+% X = (X - mu)./ sd;
 
 
 %% Prepare for iterative lasso
@@ -76,19 +76,19 @@ while true
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
-        test.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
+        test.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
-        % Releveling 
-        opts = glmnetSet();
-        opts.alpha = 0;
-        % Choose lambda
-        fitObj_cv_ridge = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-        opts.lambda = fitObj_cv_ridge.lambda_min;
-        % Fitting ridge regression
-        fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
-        % Record releveling accuracy
-        r.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-        r.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
+%         % Releveling 
+%         opts = glmnetSet();
+%         opts.alpha = 0;
+%         % Choose lambda
+%         fitObj_cv_ridge = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
+%         opts.lambda = fitObj_cv_ridge.lambda_min;
+%         % Fitting ridge regression
+%         fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
+%         % Record releveling accuracy
+%         ridge.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+%         ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
         
         
 
@@ -100,18 +100,16 @@ while true
         used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 
     end
-    textprogressbar('Done.\n') 
+    textprogressbar('Done.\n'); 
    
 
     % Take a snapshot, find out all voxels were used at this time point
     USED{numIter} = used;
 
-    % Record the results, including 
-    % 1) hit.accuracy: the accuracy for the correspoinding cv block        
-    hit.accuracy(numIter, :) = test.accuracy;            
-    % 2) hit.all : how many voxels have been selected        
+    % Record feature selction process        
+    % 1) hit.all : how many voxels have been selected        
     hit.all(numIter, :) = sum(used,2);
-    % 3) hit.current: how many voxels have been selected in current
+    % 2) hit.current: how many voxels have been selected in current
     % iteration
     if numIter == 1
         hit.current(1,:) = hit.all(1,:);
@@ -129,7 +127,7 @@ while true
 
     
     % Test classification accuracy aganist chance 
-    [t,p] = ttest(test.accuracy, chance, 'Tail', 'right');
+    [t,p] = ttest(test.accuracy(numIter,:), chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
         numSig = numSig + 1;
@@ -139,9 +137,9 @@ while true
     end
     
     disp('The accuracy for each CV: ');
-    disp(num2str(test.accuracy));
-    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy))]);
-    disp(['Releveling accuracy using ridge: ' num2str(mean(r.accuracy))])   
+    disp(num2str(test.accuracy(numIter,:)));
+    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy(numIter,:)))])
+%     disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))])   
     
     disp('Number of voxels that were selected by Lasso (cumulative):')
     disp(hit.all(numIter,:))   
@@ -167,16 +165,48 @@ while true
 
 end
 
+%% Plot the feature selection plots
+% Plot the hit.rate 
+figure(1)
+subplot(1,2,1)
+plot(hit.all,'LineWidth',1.5)
+xlabel({'Iterations'; ' ' ;...
+    '* Each line indicates a different CV blocks' ;...
+    '* the last two iterations were insignificant '},...
+    'FontSize',12);
+ylabel('Number of voxels', 'FontSize',12);
+title ({'Feature selection plot (cumulative)' }, 'FontSize',12);
+set(gca,'xtick',1:size(hit.all(:,1),1))
+
+% plot the hit.rate_current
+subplot(1,2,2)
+plot(hit.current)
+    xlabel({'Iterations'; ' ' ;...
+    '* Each line indicates a different CV blocks' ;...
+    '* the last two iterations were insignificant '},...
+    'FontSize',12);
+title ({'Feature selection plot (non - cumulative)' }, 'FontSize',12);
+set(gca,'xtick',1:size(hit.current(:,1),1))
+
+
+
 %% Pooling solution and fitting ridge regression
 textprogressbar('Fitting ridge on pooled solution: ' );
 for CV = 1:k
-    textprogressbar(CV * 10)
+    textprogressbar(CV * 10);
     % Subset: find voxels that were selected 
     Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
-    % Split the final data set to testing set and training set 
-    Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
-    Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
+    FINAL_HOLDOUT = CVBLOCKS(:,CV);
+    Xtrain = Xfinal(~FINAL_HOLDOUT,:);
+    Xtest = Xfinal(FINAL_HOLDOUT,:);
+    Ytrain = Y(~FINAL_HOLDOUT);  
+    Ytest = Y(FINAL_HOLDOUT);  
+    
+    
+%     % Split the final data set to testing set and training set 
+%     Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
+%     Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
  
     % Fit cvglmnet using ridge (find the best lambda)
     opts = glmnetSet(); 
@@ -185,8 +215,8 @@ for CV = 1:k
     
     
     % Use the best lambda value
-%     opts.lambda = fitObj_cvFinal.lambda_min;
-    opts.lambda = fitObj_cvFinal.lambda_1se;
+    opts.lambda = fitObj_cvFinal.lambda_min;
+%     opts.lambda = fitObj_cvFinal.lambda_1se;
 
     % Fit glmnet 
     fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
@@ -196,11 +226,11 @@ for CV = 1:k
     final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
 
 end
-textprogressbar('Done.\n')
+textprogressbar('Done.\n');
 
 
-disp('Final accuracies: ')
-disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
-disp(final.accuracy)
-disp('Mean accuracy: ')
-disp(mean(final.accuracy))
+disp('Final accuracies: ');
+disp('(row: CV that just performed; colum: CV block from the iterative Lasso)');
+disp(final.accuracy);
+disp('Mean accuracy: ');
+disp(mean(final.accuracy));

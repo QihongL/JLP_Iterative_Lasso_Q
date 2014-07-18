@@ -1,14 +1,14 @@
 %% Iterative Lasso -> JLP data set
 % This version contains all the code for iterative Lasso
-
 clear;
 
 %% load the data
-load('jlp_metadata.mat');
-load(('jlp02.mat'),'X');
+DATA_PATH = '../data';
+load(fullfile(DATA_PATH,'jlp_metadata.mat'));
+load(fullfile(DATA_PATH,'jlp01.mat'),'X');
 
 %% Set the subject Number
-SubNum = 2;
+SubNum = 1;
 
 %% Prepration
 % Inidices for testing and training set
@@ -76,9 +76,9 @@ while true
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
-        test.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
+        lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
-%         % Releveling 
+        % Releveling 
 %         opts = glmnetSet();
 %         opts.alpha = 0;
 %         % Choose lambda
@@ -93,7 +93,7 @@ while true
         
 
         % Keeping track of which set of voxels were used in each cv block
-%         if ttest(test.accuracy, chance, 'Tail', 'right') == 1
+%         if ttest(lasso.accuracy, chance, 'Tail', 'right') == 1
 %             used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 %         end
                 
@@ -127,7 +127,7 @@ while true
 
     
     % Test classification accuracy aganist chance 
-    [t,p] = ttest(test.accuracy(numIter,:), chance, 'Tail', 'right');
+    [t,p] = ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
         numSig = numSig + 1;
@@ -137,8 +137,8 @@ while true
     end
     
     disp('The accuracy for each CV: ');
-    disp(num2str(test.accuracy(numIter,:)));
-    disp(['The mean classification accuracy: ' num2str(mean(test.accuracy(numIter,:)))])
+    disp(num2str(lasso.accuracy(numIter,:)));
+    disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy(numIter,:)))])
 %     disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))])   
     
     disp('Number of voxels that were selected by Lasso (cumulative):')
@@ -197,26 +197,21 @@ for CV = 1:k
     % Subset: find voxels that were selected 
     Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
+    % Split the final data set to testing set and training set     
     FINAL_HOLDOUT = CVBLOCKS(:,CV);
     Xtrain = Xfinal(~FINAL_HOLDOUT,:);
     Xtest = Xfinal(FINAL_HOLDOUT,:);
     Ytrain = Y(~FINAL_HOLDOUT);  
     Ytest = Y(FINAL_HOLDOUT);  
-    
-    
-%     % Split the final data set to testing set and training set 
-%     Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
-%     Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
- 
+
     % Fit cvglmnet using ridge (find the best lambda)
     opts = glmnetSet(); 
     opts.alpha = 0;    
     fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
     
-    
     % Use the best lambda value
-    opts.lambda = fitObj_cvFinal.lambda_min;
-%     opts.lambda = fitObj_cvFinal.lambda_1se;
+%     opts.lambda = fitObj_cvFinal.lambda_min;
+    opts.lambda = fitObj_cvFinal.lambda_1se;
 
     % Fit glmnet 
     fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);

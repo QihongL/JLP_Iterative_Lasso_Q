@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, used, USED ] = iterLasso( X, Y, CVBLOCKS, SubNum )
+function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, SubNum )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -62,7 +62,7 @@ while true
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
-        lasso.accuracy(:,CV) = mean(Ytest == test.prediction(:,CV))';
+        lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
         % Releveling 
         opts = glmnetSet();
@@ -73,13 +73,13 @@ while true
         % Fitting ridge regression
         fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record releveling accuracy
-        r.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-        ridge.accuracy(:,CV) = mean(Ytest == r.prediction(:,CV))';
+        ridge.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+        ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
         
         
 
         % Keeping track of which set of voxels were used in each cv block
-%         if ttest(lasso.accuracy, chance, 'Tail', 'right') == 1
+%         if ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right') == 1
 %             used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
 %         end
                 
@@ -92,12 +92,10 @@ while true
     % Take a snapshot, find out all voxels were used at this time point
     USED{numIter} = used;
 
-    % Record the results, including 
-    % 1) hit.accuracy: the accuracy for the correspoinding cv block        
-    hit.accuracy(numIter, :) = lasso.accuracy;            
-    % 2) hit.all : how many voxels have been selected        
+    % Record the results, including           
+    % 1) hit.all : how many voxels have been selected        
     hit.all(numIter, :) = sum(used,2);
-    % 3) hit.current: how many voxels have been selected in current
+    % 2) hit.current: how many voxels have been selected in current
     % iteration
     if numIter == 1
         hit.current(1,:) = hit.all(1,:);
@@ -109,24 +107,25 @@ while true
 
     %% Printing some results 
     % Test classification accuracy aganist chance 
-    [t,p] = ttest(lasso.accuracy, chance, 'Tail', 'right');
+    [t,p] = ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
         numSig = numSig + 1;
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']) 
+        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']); 
     else
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]) 
+        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]); 
     end
-    
+    disp(' ');
     disp('The accuracy for each CV: ');
-    disp(num2str(lasso.accuracy));
-    disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy))]);
-    disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy))])   
-    
-    disp('Number of voxels that were selected by Lasso (cumulative):')
-    disp(hit.all(numIter,:))   
-    disp('Number of voxels that were selected by Lasso in the current iteration:')    
-    disp(hit.current(numIter,:))
+    disp(num2str(lasso.accuracy(numIter,:)));
+    disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy(numIter,:)))]);
+   
+    disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))]);  
+    disp(' ');
+    disp('Number of voxels that were selected by Lasso (cumulative):');
+    disp(hit.all(numIter,:));   
+    disp('Number of voxels that were selected by Lasso in the current iteration:');    
+    disp(hit.current(numIter,:));
 
 
     %% Stop iteration, when the decoding accuracy is not better than chance
@@ -187,8 +186,11 @@ for CV = 1:k
     Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
     % Split the final data set to testing set and training set 
-    Xtest = Xfinal(CVBLOCKS(:,CV) ,:);
-    Xtrain = Xfinal(~CVBLOCKS(:,CV) ,:);
+    FINAL_HOLDOUT = CVBLOCKS(:,CV);
+    Xtrain = Xfinal(~FINAL_HOLDOUT,:);
+    Xtest = Xfinal(FINAL_HOLDOUT,:);
+    Ytrain = Y(~FINAL_HOLDOUT);  
+    Ytest = Y(FINAL_HOLDOUT);  
  
     % Fit cvglmnet using ridge (find the best lambda)
     opts = glmnetSet(); 

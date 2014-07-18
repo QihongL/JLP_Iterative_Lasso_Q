@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -64,16 +64,21 @@ while true
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
         % Releveling 
-        opts = glmnetSet();
-        opts.alpha = 0;
-        % Choose lambda
-        fitObj_cv_ridge = cvglmnet(Xtrain(:,fitObj.beta~=0),Ytrain,'binomial', opts, 'class',9,fold_id');
-        opts.lambda = fitObj_cv_ridge.lambda_min;
-        % Fitting ridge regression
-        fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
-        % Record releveling accuracy
-        ridge.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-        ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
+        
+%         if sum(fitObj.beta ~= 0) ~= 0
+%             opts = glmnetSet();
+%             opts.alpha = 0;
+%             % Choose lambda
+%             fitObj_cv_ridge = cvglmnet(Xtrain(:,fitObj.beta~=0),Ytrain,'binomial', opts, 'class',9,fold_id');
+%             opts.lambda = fitObj_cv_ridge.lambda_min;
+%             % Fitting ridge regression
+%             fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
+%             % Record releveling accuracy
+%             ridge.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+%             ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
+%         else
+%             releveling == 0;
+%         end
         
         
 
@@ -111,15 +116,17 @@ while true
     if t == 1 % t could be NaN
         numSig = numSig + 1;
         disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']); 
+        lasso.sig(numIter,:) = 1;
     else
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]); 
+        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]);
+        lasso.sig(numIter,:) = 0;
     end
     disp(' ');
     disp('The accuracy for each CV: ');
     disp(num2str(lasso.accuracy(numIter,:)));
     disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy(numIter,:)))]);
    
-    disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))]);  
+%     disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))]);  
     disp(' ');
     disp('Number of voxels that were selected by Lasso (cumulative):');
     disp(hit.all(numIter,:));   

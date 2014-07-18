@@ -2,21 +2,18 @@
 clear;
 
 %% load the data
-
-[X,metadata] = loadMRIData('jlp',1);
+SubNum = 2
+[X,metadata] = loadMRIData('jlp',SubNum);
 
 %% Prepration
 % Inidices for testing and training set
-% CVBLOCKS = metadata(SubNum).CVBLOCKS;
-% % Row labels: 
-% Y = metadata(SubNum).TrueFaces;
-
-% Inidices for testing and training set
-CVBLOCKS = metadata.CVBLOCKS;
+CVBLOCKS = metadata(SubNum).CVBLOCKS;
 % Row labels: 
-Y = metadata.TrueFaces;
+Y = metadata(SubNum).TrueFaces;
 
-[ hit, final, lasso, ridge, used, USED ] = IterLasso(X,Y,CVBLOCKS,2)
+
+[ hit, final, lasso ] = IterLasso(X,Y,CVBLOCKS,2);
+
 
 
 % %% Run iterative Lasso for all 12 subjects

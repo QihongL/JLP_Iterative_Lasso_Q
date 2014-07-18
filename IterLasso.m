@@ -1,18 +1,18 @@
-function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, SubNum )
+function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
 % % % X: The data set
 % % % Y: The row labels
 % % % CVBLOCKS: The cv indices
-% % % SubNum: The subject number 
+% % % STOPPING_RULE: Stop after n non-significant iteration. 
 
 
 %% Prepare for iterative lasso
 % The number of voxels
 nvoxels = size(X,2);
 % The number of CV blocks
-k = 10;
+k = size(CVBLOCKS,2);
 % The size for the testing set 
 test.size = size(X,1)/k;
 % Keeping track of the number of iteration
@@ -22,7 +22,6 @@ numSig = 0;
 % Stopping criterion 
 % Iterative Lasso stops when t-test insignificant twice
 STOPPING_COUNTER = 0;
-STOPPING_RULE = 2;  
 chance = 2/3 + 1e-4;
 % Create a matrix to index voxels that have been used (Chris' method)
 used = false(k,nvoxels);
@@ -68,7 +67,7 @@ while true
         opts = glmnetSet();
         opts.alpha = 0;
         % Choose lambda
-        fitObj_cv_ridge = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
+        fitObj_cv_ridge = cvglmnet(Xtrain(:,fitObj.beta~=0),Ytrain,'binomial', opts, 'class',9,fold_id');
         opts.lambda = fitObj_cv_ridge.lambda_min;
         % Fitting ridge regression
         fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
@@ -218,5 +217,6 @@ disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
 disp(final.accuracy)
 disp('Mean accuracy: ')
 disp(mean(final.accuracy))
+
 end
 

@@ -2,7 +2,7 @@
 clear;
 
 %% load the data
-SubNum = 2
+SubNum = 10;
 [X,metadata] = loadMRIData('jlp',SubNum);
 
 %% Prepration
@@ -12,7 +12,7 @@ CVBLOCKS = metadata(SubNum).CVBLOCKS;
 Y = metadata(SubNum).TrueFaces;
 
 
-[ hit, final, lasso ] = IterLasso(X,Y,CVBLOCKS,2);
+[ hit, final, lasso, ridge ] = IterLasso(X,Y,CVBLOCKS,2);
 
 
 

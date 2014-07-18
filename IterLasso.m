@@ -63,31 +63,25 @@ while true
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
-        % Releveling 
-        
-%         if sum(fitObj.beta ~= 0) ~= 0
-%             opts = glmnetSet();
-%             opts.alpha = 0;
-%             % Choose lambda
-%             fitObj_cv_ridge = cvglmnet(Xtrain(:,fitObj.beta~=0),Ytrain,'binomial', opts, 'class',9,fold_id');
-%             opts.lambda = fitObj_cv_ridge.lambda_min;
-%             % Fitting ridge regression
-%             fitObj_ridge = glmnet(Xtrain, Ytrain, 'binomial', opts);
-%             % Record releveling accuracy
-%             ridge.prediction(:,CV) = (Xtest * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-%             ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
-%         else
-%             releveling == 0;
-%         end
-        
-        
 
-        % Keeping track of which set of voxels were used in each cv block
-%         if ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right') == 1
-%             used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
-%         end
-                
-        used( CV, ~used(CV,:) ) = fitObj.beta ~= 0;
+%         % Releveling 
+%         opts = glmnetSet();
+%         opts.alpha = 0;
+%         % Choose lambda
+%         fitObj_cv_ridge = cvglmnet(Xtrain(:,(fitObj.beta ~= 0)'),Ytrain,'binomial', opts, 'class',9,fold_id');
+%         opts.lambda = fitObj_cv_ridge.lambda_min;
+%         % Fitting ridge regression
+%         fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
+%         % Record releveling accuracy
+%         ridge.prediction(:,CV) = (Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+%         ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
+
+        
+        
+         % Keeping track of voxels that are being used in the current iteration       
+        used( CV, ~used(CV,:) ) = fitObj.beta ~= 0; 
+        
+               
 
     end
     textprogressbar('Done.\n') 
@@ -171,7 +165,7 @@ set(gca,'xtick',1:size(hit.all(:,1),1))
 
 % plot the hit.current
 subplot(1,2,2)
-plot(hit.current)
+plot(hit.current,'LineWidth',1.5)
     xlabel({'Iterations'; ' ' ;...
     '* Each line indicates a different CV blocks' ;...
     '* the last two iterations were insignificant '},...

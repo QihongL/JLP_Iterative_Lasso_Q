@@ -107,13 +107,7 @@ while true
     
  
 
-    %% Printing some results
-    % Keep track of the number of iteration.
-%     disp(['Iteration number: ' num2str(numIter)]);
-    
-    % Display the average accuracy for this procedure 
-
-    
+    %% Printing some results 
     % Test classification accuracy aganist chance 
     [t,p] = ttest(lasso.accuracy, chance, 'Tail', 'right');
 
@@ -152,6 +146,38 @@ while true
     end 
 
 end
+
+
+
+
+
+%% Plot the feature selection plots
+% Plot the hit.all 
+figure(1)
+subplot(1,2,1)
+plot(hit.all,'LineWidth',1.5)
+xlabel({'Iterations'; ' ' ;...
+    '* Each line indicates a different CV blocks' ;...
+    '* the last two iterations were insignificant '},...
+    'FontSize',12);
+ylabel('Number of voxels', 'FontSize',12);
+title ({'Feature selection plot (cumulative)' }, 'FontSize',12);
+set(gca,'xtick',1:size(hit.all(:,1),1))
+
+% plot the hit.current
+subplot(1,2,2)
+plot(hit.current)
+    xlabel({'Iterations'; ' ' ;...
+    '* Each line indicates a different CV blocks' ;...
+    '* the last two iterations were insignificant '},...
+    'FontSize',12);
+title ({'Feature selection plot (non - cumulative)' }, 'FontSize',12);
+set(gca,'xtick',1:size(hit.current(:,1),1))
+
+
+
+
+
 
 %% Pooling solution and fitting ridge regression
 textprogressbar('Fitting ridge on pooled solution: ' );

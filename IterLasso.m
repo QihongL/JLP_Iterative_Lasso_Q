@@ -50,7 +50,7 @@ while true
         Ytrain = Y(~FINAL_HOLDOUT);  
         Ytest = Y(FINAL_HOLDOUT);    
 
-        % Use Lasso
+        %% Fitting Lasso
         opts = glmnetSet();
         opts.alpha = 1;
         % Fit lasso with cv
@@ -64,18 +64,24 @@ while true
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
 
-%         % Releveling 
-%         opts = glmnetSet();
-%         opts.alpha = 0;
-%         % Choose lambda
-%         fitObj_cv_ridge = cvglmnet(Xtrain(:,(fitObj.beta ~= 0)'),Ytrain,'binomial', opts, 'class',9,fold_id');
-%         opts.lambda = fitObj_cv_ridge.lambda_min;
-%         % Fitting ridge regression
-%         fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
-%         % Record releveling accuracy
-%         ridge.prediction(:,CV) = (Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-%         ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
-
+        %% Releveling 
+        if sum(fitObj.beta ~= 0) == 0
+            % Lasso could select nothing, in this case, there is no
+            % accuracy
+            ridge.accuracy(numIter,CV) = NaN;
+        else
+        
+        opts = glmnetSet();
+        opts.alpha = 0;
+        % Choose lambda
+        fitObj_cv_ridge = cvglmnet(Xtrain(:,(fitObj.beta ~= 0)'),Ytrain,'binomial', opts, 'class',9,fold_id');
+        opts.lambda = fitObj_cv_ridge.lambda_min;
+        % Fitting ridge regression
+        fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
+        % Record releveling accuracy
+        ridge.prediction(:,CV) = (Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
+        ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
+        end 
         
         
          % Keeping track of voxels that are being used in the current iteration       
@@ -116,16 +122,20 @@ while true
         lasso.sig(numIter,:) = 0;
     end
     disp(' ');
-    disp('The accuracy for each CV: ');
+    disp('The Lasso accuracy for each CV: ');
     disp(num2str(lasso.accuracy(numIter,:)));
-    disp(['The mean classification accuracy: ' num2str(mean(lasso.accuracy(numIter,:)))]);
-   
-%     disp(['Releveling accuracy using ridge: ' num2str(mean(ridge.accuracy(numIter,:)))]);  
+    disp('The releveling accuracy for each CV using ridge: ')
+    disp(num2str(ridge.accuracy(numIter,:)));
+    
+    disp(['The mean classification accuracy for Lasso: ' num2str(mean(lasso.accuracy(numIter,:)))]);
+    disp(['Releveling accuracy using ridge: ' num2str(nanmean(ridge.accuracy(numIter,:)))]);  
     disp(' ');
+    
     disp('Number of voxels that were selected by Lasso (cumulative):');
-    disp(hit.all(numIter,:));   
+    disp(num2str(hit.all(numIter,:)));   
     disp('Number of voxels that were selected by Lasso in the current iteration:');    
-    disp(hit.current(numIter,:));
+    disp(num2str(hit.current(numIter,:)));
+    disp('=======================================')
 
 
     %% Stop iteration, when the decoding accuracy is not better than chance

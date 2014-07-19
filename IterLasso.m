@@ -23,6 +23,7 @@ numSig = 0;
 % Iterative Lasso stops when t-test insignificant twice
 STOPPING_COUNTER = 0;
 chance = 2/3 + 1e-4;
+% STOPPING_RULE = 2;
 % Create a matrix to index voxels that have been used (Chris' method)
 used = false(k,nvoxels);
 
@@ -127,8 +128,8 @@ while true
     disp('The releveling accuracy for each CV using ridge: ')
     disp(num2str(ridge.accuracy(numIter,:)));
     
-    disp(['The mean classification accuracy for Lasso: ' num2str(mean(lasso.accuracy(numIter,:)))]);
-    disp(['Releveling accuracy using ridge: ' num2str(nanmean(ridge.accuracy(numIter,:)))]);  
+    disp(['The mean classification accuracy using Lasso: ' num2str(mean(lasso.accuracy(numIter,:)))]);
+    disp(['The mean releveling accuracy using ridge: ' num2str(nanmean(ridge.accuracy(numIter,:)))]);  
     disp(' ');
     
     disp('Number of voxels that were selected by Lasso (cumulative):');
@@ -146,6 +147,7 @@ while true
         % stop, if t-test = 0 n times, where n = STOPPING_RULE
             disp(' ')
             disp('* Iterative Lasso was terminated, as the classification accuracy is at chance level.')
+            disp('=======================================')
             disp(' ')
             break
         end
@@ -186,48 +188,51 @@ set(gca,'xtick',1:size(hit.current(:,1),1))
 
 
 
-
-
+if numIter - STOPPING_RULE <= 0 
+    final.accuracy = NaN(1,10);
+    disp('* The number of iterations <= the STOPPING_RULE, which suggests the first several iterations are probably all nonsignificant.')
+    disp('* So there is no solution to pool, under current stopping rule. ')
+else
 %% Pooling solution and fitting ridge regression
-textprogressbar('Fitting ridge on pooled solution: ' );
-for CV = 1:k
-    textprogressbar(CV * 10)
-    % Subset: find voxels that were selected 
-    Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
+    textprogressbar('Fitting ridge on pooled solution: ' );
+    for CV = 1:k
+        textprogressbar(CV * 10)
+        % Subset: find voxels that were selected 
+        Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
-    % Split the final data set to testing set and training set 
-    FINAL_HOLDOUT = CVBLOCKS(:,CV);
-    Xtrain = Xfinal(~FINAL_HOLDOUT,:);
-    Xtest = Xfinal(FINAL_HOLDOUT,:);
-    Ytrain = Y(~FINAL_HOLDOUT);  
-    Ytest = Y(FINAL_HOLDOUT);  
- 
-    % Fit cvglmnet using ridge (find the best lambda)
-    opts = glmnetSet(); 
-    opts.alpha = 0;    
-    fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-    
-    
-    % Use the best lambda value
-%     opts.lambda = fitObj_cvFinal.lambda_min;
-    opts.lambda = fitObj_cvFinal.lambda_1se;
+        % Split the final data set to testing set and training set 
+        FINAL_HOLDOUT = CVBLOCKS(:,CV);
+        Xtrain = Xfinal(~FINAL_HOLDOUT,:);
+        Xtest = Xfinal(FINAL_HOLDOUT,:);
+        Ytrain = Y(~FINAL_HOLDOUT);  
+        Ytest = Y(FINAL_HOLDOUT);  
 
-    % Fit glmnet 
-    fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        % Fit cvglmnet using ridge (find the best lambda)
+        opts = glmnetSet(); 
+        opts.alpha = 0;    
+        fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
 
-    % Calculating accuracies
-    final.prediction(:,CV) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  
-    final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
 
+        % Use the best lambda value
+    %     opts.lambda = fitObj_cvFinal.lambda_min;
+        opts.lambda = fitObj_cvFinal.lambda_1se;
+
+        % Fit glmnet 
+        fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
+
+        % Calculating accuracies
+        final.prediction(:,CV) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  
+        final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
+
+    end
+    textprogressbar('Done.\n')
+
+    disp('Final accuracies: ')
+    disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
+    disp(final.accuracy)
+    disp('Mean accuracy: ')
+    disp(mean(final.accuracy))
 end
-textprogressbar('Done.\n')
-
-
-disp('Final accuracies: ')
-disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
-disp(final.accuracy)
-disp('Mean accuracy: ')
-disp(mean(final.accuracy))
 
 end
 

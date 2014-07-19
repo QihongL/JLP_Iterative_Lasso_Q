@@ -2,7 +2,7 @@
 clear;
 
 %% load the data
-SubNum = 10;
+SubNum = 3;
 [X,metadata] = loadMRIData('jlp',SubNum);
 
 %% Prepration

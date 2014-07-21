@@ -1,4 +1,4 @@
-function [ hit, final, lasso, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -116,12 +116,14 @@ while true
 
     if t == 1 % t could be NaN
         numSig = numSig + 1;
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']); 
         lasso.sig(numIter,:) = 1;
+        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']);         
     else
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]);
         lasso.sig(numIter,:) = 0;
+        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]);
     end
+    
+    
     disp(' ');
     disp('The Lasso accuracy for each CV: ');
     disp(num2str(lasso.accuracy(numIter,:)));
@@ -192,6 +194,7 @@ if numIter - STOPPING_RULE <= 0
     final.accuracy = NaN(1,10);
     disp('* The number of iterations <= the STOPPING_RULE, which suggests the first several iterations are probably all nonsignificant.')
     disp('* So there is no solution to pool, under current stopping rule. ')
+    disp(' ');
 else
 %% Pooling solution and fitting ridge regression
     textprogressbar('Fitting ridge on pooled solution: ' );
@@ -232,6 +235,7 @@ else
     disp(final.accuracy)
     disp('Mean accuracy: ')
     disp(mean(final.accuracy))
+    disp(' ');
 end
 
 end

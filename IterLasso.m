@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, used, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -141,7 +141,7 @@ while true
     disp('=======================================')
 
 
-    %% Stop iteration, when the decoding accuracy is not better than chance
+    %% Stop iterating, if the accuracy is no better than chance N times
     if t ~= 1   %  ~t will rise a bug, when t is NaN
         STOPPING_COUNTER = STOPPING_COUNTER + 1;
 
@@ -172,9 +172,9 @@ plot(hit.all,'LineWidth',1.5)
 xlabel({'Iterations'; ' ' ;...
     '* Each line indicates a different CV blocks' ;...
     '* the last two iterations were insignificant '},...
-    'FontSize',12);
-ylabel('Number of voxels', 'FontSize',12);
-title ({'Feature selection plot (cumulative)' }, 'FontSize',12);
+    'FontSize',13);
+ylabel('Number of voxels', 'FontSize',13);
+title ({'Feature selection plot (cumulative)' }, 'FontSize',13);
 set(gca,'xtick',1:size(hit.all(:,1),1))
 
 % plot the hit.current
@@ -183,24 +183,25 @@ plot(hit.current,'LineWidth',1.5)
     xlabel({'Iterations'; ' ' ;...
     '* Each line indicates a different CV blocks' ;...
     '* the last two iterations were insignificant '},...
-    'FontSize',12);
-title ({'Feature selection plot (non - cumulative)' }, 'FontSize',12);
+    'FontSize',13);
+title ({'Feature selection plot (non - cumulative)' }, 'FontSize',13);
 set(gca,'xtick',1:size(hit.current(:,1),1))
 
 
+%% Pooling solution and fitting ridge regression
 
-
+% first, check whether pooling solution is possible
 if numIter - STOPPING_RULE <= 0 
     final.accuracy = NaN(1,10);
     disp('* The number of iterations <= the STOPPING_RULE, which suggests the first several iterations are probably all nonsignificant.')
     disp('* So there is no solution to pool, under current stopping rule. ')
     disp(' ');
 else
-%% Pooling solution and fitting ridge regression
+    % Pooling solutions
     textprogressbar('Fitting ridge on pooled solution: ' );
     for CV = 1:k
         textprogressbar(CV * 10)
-        % Subset: find voxels that were selected 
+        % Subsetting: find voxels that were selected 
         Xfinal = X( :, USED{numIter - STOPPING_RULE}(CV,:) );
 
         % Split the final data set to testing set and training set 
@@ -229,7 +230,8 @@ else
 
     end
     textprogressbar('Done.\n')
-
+    
+    % Print some results
     disp('Final accuracies: ')
     disp('(row: CV that just performed; colum: CV block from the iterative Lasso)')
     disp(final.accuracy)

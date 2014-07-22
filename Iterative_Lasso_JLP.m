@@ -17,7 +17,8 @@ Y = metadata(SubNum).TrueFaces;
 
 
 
-% %% Run all subjects & record the results 
+%% Run all subjects & record the results 
+
 % % Thid block of code can automatically run ten subject for one type of label (e.g. Face)
 % for i = 1:10
 %     % prep
@@ -40,6 +41,7 @@ Y = metadata(SubNum).TrueFaces;
 
 
 
-% Find indices for voxels selected
+%% Find XYZs for the solutions
+
 % metadata(Sub Num).xyz_tlrc([find(result(Sub Num).used{pool num}(cv num,:) == 1)],:)
 % metadata(7).xyz_tlrc([find(result(7).used{4}(1,:) == 1)],:)

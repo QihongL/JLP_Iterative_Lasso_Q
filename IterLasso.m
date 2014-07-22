@@ -64,6 +64,10 @@ while true
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
+        
+        %% Alternative Stopping criterion (hit rate - false alarm rate)
+        hit.rate(numIter, CV) = sum(ismember(find(test.prediction(:,CV) == 1), find(Ytest == 1))) / sum(Ytest == 1);
+        hit.FArate(numIter, CV) = sum(ismember(find(test.prediction(:,CV) ~= 1), find(Ytest ~= 1))) / sum(Ytest ~= 1);
 
         %% Releveling 
         if sum(fitObj.beta ~= 0) == 0

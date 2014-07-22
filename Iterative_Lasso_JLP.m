@@ -41,4 +41,5 @@ Y = metadata(SubNum).TrueFaces;
 
 
 % Find indices for voxels selected
-% find(result(SubNum).used{Pooled num}(CV num,:) == 1)'
+% metadata(Sub Num).xyz_tlrc([find(result(Sub Num).used{pool num}(cv num,:) == 1)],:)
+% metadata(7).xyz_tlrc([find(result(7).used{4}(1,:) == 1)],:)

@@ -37,3 +37,8 @@ Y = metadata(SubNum).TrueFaces;
 %     result(SubNum).ridgeAccuracy = ridge.accuracy;
 %     result(SubNum).used = USED;
 % end
+
+
+
+% Find indices for voxels selected
+% find(result(SubNum).used{Pooled num}(CV num,:) == 1)'

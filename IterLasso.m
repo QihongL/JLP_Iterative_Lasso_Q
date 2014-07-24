@@ -66,8 +66,9 @@ while true
         
         
         %% Alternative Stopping criterion (hit rate - false alarm rate)
-        hit.rate(numIter, CV) = sum(ismember(find(test.prediction(:,CV) == 1), find(Ytest == 1))) / sum(Ytest == 1);
-        hit.FArate(numIter, CV) = sum(ismember(find(test.prediction(:,CV) ~= 1), find(Ytest ~= 1))) / sum(Ytest ~= 1);
+        hit.rate(numIter, CV) = sum(test.prediction(:,CV)  & Ytest) / sum(Ytest);
+        hit.falserate(numIter, CV) = sum(~test.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        
 
         %% Releveling 
         if sum(fitObj.beta ~= 0) == 0
@@ -111,6 +112,8 @@ while true
     else
         hit.current(numIter,:) = hit.all(numIter,: ) - hit.all(numIter - 1,:) ;
     end
+    % 3) difference between hit rate and false alarm rate
+    hit.diffHF(numIter,:) = hit.rate(numIter,:) - hit.falserate(numIter,:); 
     
  
 
@@ -121,19 +124,31 @@ while true
     if t == 1 % t could be NaN
         numSig = numSig + 1;
         lasso.sig(numIter,:) = 1;
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p), ' *']);         
+        disp(['T-test for lasso accuracy against chance. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
     else
         lasso.sig(numIter,:) = 0;
-        disp(['Result for the t-test: ' num2str(t) ',  P = ' num2str(p)]);
+        disp(['T-test for lasso accuracy against chance. Result= ' num2str(t) ',  P = ' num2str(p)]);
+    end
+    
+
+    [t2,p2] = ttest(hit.diffHF(numIter,:), 0, 'Tail', 'right');
+    
+    if t2 == 1 % t could be NaN
+        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
+    else
+        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p)]);
     end
     
     
-    disp(' ');
+    disp('Difference between hit rate and false alarm rate: ');
+    disp(num2str(hit.diffHF(numIter,:)));
+    disp(['Average difference between hit are and false alarm rate: ' num2str(mean(hit.diffHF(numIter,:))) ]);
+    disp(' ')
     disp('The Lasso accuracy for each CV: ');
     disp(num2str(lasso.accuracy(numIter,:)));
-    disp('The releveling accuracy for each CV using ridge: ')
+    disp('The releveling accuracy for each CV using ridge: ');
     disp(num2str(ridge.accuracy(numIter,:)));
-    
+    disp(' ')
     disp(['The mean classification accuracy using Lasso: ' num2str(mean(lasso.accuracy(numIter,:)))]);
     disp(['The mean releveling accuracy using ridge: ' num2str(nanmean(ridge.accuracy(numIter,:)))]);  
     disp(' ');
@@ -142,7 +157,7 @@ while true
     disp(num2str(hit.all(numIter,:)));   
     disp('Number of voxels that were selected by Lasso in the current iteration:');    
     disp(num2str(hit.current(numIter,:)));
-    disp('=======================================')
+    disp('--------------------------------------------------------------------')
 
 
     %% Stop iterating, if the accuracy is no better than chance N times
@@ -153,7 +168,7 @@ while true
         % stop, if t-test = 0 n times, where n = STOPPING_RULE
             disp(' ')
             disp('* Iterative Lasso was terminated, as the classification accuracy is at chance level.')
-            disp('=======================================')
+            disp('====================================================================')
             disp(' ')
             break
         end

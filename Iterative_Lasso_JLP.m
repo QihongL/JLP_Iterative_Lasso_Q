@@ -16,7 +16,6 @@ Y = metadata(SubNum).TrueFaces;
 [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
 
 
-
 %% Run all subjects & record the results 
 
 % % Thid block of code can automatically run ten subject for one type of label (e.g. Face)

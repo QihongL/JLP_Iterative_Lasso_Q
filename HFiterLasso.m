@@ -53,7 +53,7 @@ while true
 
         %% Fitting Lasso
         
-%---------------------------<This part is going to be replaced>--------------------     
+%---------------------------< This part is going to be replaced >-----------------     
 %         opts = glmnetSet();
 %         opts.alpha = 1;
 %         % Fit lasso with cv

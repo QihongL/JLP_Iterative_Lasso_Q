@@ -64,21 +64,6 @@ while true
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
-%         %% Alternative measure of performance (hit rate - false alarm rate)
-%         % Use lasso
-%         opts = glmnetSet();
-%         opts.alpha = 1;
-%         % Do cvglmnet manually
-%         fitObj_cvHF = glmnet(Xtrain, Ytrain, 'binomial', opts);
-%         
-%         for i = 1:9
-%             cvHF_HOLDOUT(:,i) = ( i == fold_id);
-%   
-%         end        
-%         % Pick the best lambda 
-%         % Fit lasso
-%         % Compute performance
-%         
         
         %% Alternative Stopping criterion (hit rate - false alarm rate)
         hit.rate(numIter, CV) = sum(test.prediction(:,CV)  & Ytest) / sum(Ytest);

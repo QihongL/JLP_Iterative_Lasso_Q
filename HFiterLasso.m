@@ -52,23 +52,17 @@ while true
         Ytest = Y(FINAL_HOLDOUT);    
 
         %% Fitting Lasso
-        
-%---------------------------< This part is going to be replaced >-----------------     
-%         opts = glmnetSet();
-%         opts.alpha = 1;
-%         % Fit lasso with cv
-%         fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-%         % Pick the best lambda
-%         opts.lambda = fitObj_cv.lambda_min;
-%---------------------------------------------------------------------------------        
-        
-        bestLambda  = HFcvglmnet( Xtrain, Ytrain, 9, fold_id );
+        opts = glmnetSet();
+        opts.alpha = 1;
+        % Tuning lambda
+        bestLambda  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
         opts.lambda = bestLambda;
 
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
-        test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
+        test.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj.beta, fitObj.a0) > 0 ;
+%         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
         
@@ -129,7 +123,7 @@ while true
     [t,p] = ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
-        numSig = numSig + 1;
+%         numSig = numSig + 1;
         lasso.sig(numIter,:) = 1;
         disp(['T-test for lasso accuracy against chance. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
     else
@@ -141,6 +135,7 @@ while true
     [t2,p2] = ttest(hit.diffHF(numIter,:), 0, 'Tail', 'right');
     
     if t2 == 1 % t could be NaN
+        numSig = numSig + 1;
         disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
     else
         disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p)]);
@@ -168,7 +163,7 @@ while true
 
 
     %% Stop iterating, if the accuracy is no better than chance N times
-    if t ~= 1   %  ~t will rise a bug, when t is NaN
+    if t2 ~= 1   %  ~t will rise a bug, when t is NaN
         STOPPING_COUNTER = STOPPING_COUNTER + 1;
 
         if STOPPING_COUNTER == STOPPING_RULE;

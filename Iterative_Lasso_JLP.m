@@ -13,7 +13,9 @@ Y = metadata(SubNum).TrueFaces;
 
 
 %% Run Iterative Lasso
-[ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
+[ hit, final, lasso, ridge, USED ] = HFiterLasso(X,Y,CVBLOCKS,2);
+
+
 
 
 %% Run all subjects & record the results 

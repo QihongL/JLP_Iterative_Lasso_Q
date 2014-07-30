@@ -7,8 +7,17 @@
 
 function [ bestLambda ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
 
-    % Perallocation 
-    bestLambda = zeros(K,1);
+    % Resource perallocation 
+	difference = zeros(K,100);
+    
+    % Use lasso (alpha = 1)
+    opts = glmnetSet();
+    opts.alpha = 1;      
+
+    % Choose 100 lambda values for all 9 folds CV
+    fit = glmnet(Xtrain,Ytrain);
+    opts.lambda = fit.lambda;
+    
 
     % Start cross validation 
     for CV = 1:K
@@ -21,9 +30,7 @@ function [ bestLambda ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
         Xtrain_HF = Xtrain(~HF_HOLDOUT,:);
         Xtest_HF = Xtrain(HF_HOLDOUT,:);
         
-        % Use lasso
-        opts = glmnetSet();
-        opts.alpha = 1;      
+        % Fit lasso
         fitObj_HF = glmnet(Xtrain_HF, Ytrain_HF, 'binomial', opts);
                
         % Calculating the prediction
@@ -31,12 +38,14 @@ function [ bestLambda ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
         % Calculating hit rate, false rate, and their difference 
         hitrate = sum(bsxfun(@and, prediction, Ytest_HF)) / sum(Ytest_HF);
         falserate = sum(bsxfun(@and, ~prediction, Ytest_HF)) / sum(~Ytest_HF);                
-        difference = hitrate - falserate;
-        
-        % Find the lambda corresponds to the biggest difference
-        indices = find(difference == max(difference));
-        bestLambda(CV,1) = fitObj_HF.lambda(find(difference == max(difference), 1, 'last'));
-
+        difference(CV,:) = hitrate - falserate;
+  
     end
 
+    % Find the lambda corresponds to the biggest difference
+    % Note: when there are more than one lambda have the biggest
+    % difference, choose the least sparse solution. 
+    indice = find(mean(difference,1) == max(mean(difference,1)) ,1 ,'first');
+    bestLambda = fitObj_HF.lambda(indice);
+   
 end

@@ -2,7 +2,7 @@
 clear;
 
 %% load the data
-SubNum = 10;
+SubNum = 4;
 [X,metadata] = loadMRIData('jlp',SubNum);
 
 %% Prepration
@@ -13,9 +13,7 @@ Y = metadata(SubNum).TrueFaces;
 
 
 %% Run Iterative Lasso
-[ hit, final, lasso, ridge, USED ] = HFiterLasso(X,Y,CVBLOCKS,2);
-
-
+[ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
 %% Run all subjects & record the results 
@@ -28,7 +26,7 @@ Y = metadata(SubNum).TrueFaces;
 %     CVBLOCKS = metadata(SubNum).CVBLOCKS;
 %     Y = metadata(SubNum).TrueFaces;
 %     % Iterative Lasso
-%     [ hit, final, lasso, ridge ] = IterLasso(X,Y,CVBLOCKS,2);
+%     [ hit, final, lasso, ridge, USED ] = HFiterLasso(X,Y,CVBLOCKS,2);
 % 
 %     % Get results
 %     result(SubNum).finalAccuracy = final.accuracy;

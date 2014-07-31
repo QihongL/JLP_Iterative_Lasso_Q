@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, USED ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -13,8 +13,6 @@ function [ hit, final, lasso, ridge, USED ] = HFiterLasso( X, Y, CVBLOCKS, STOPP
 nvoxels = size(X,2);
 % The number of CV blocks
 k = size(CVBLOCKS,2);
-% The size for the testing set 
-test.size = size(X,1)/k;
 % Keeping track of the number of iteration
 numIter = 0;
 % Keeping track of number of significant iteration
@@ -55,20 +53,19 @@ while true
         opts = glmnetSet();
         opts.alpha = 1;
         % Tuning lambda
-        bestLambda  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
-        opts.lambda = bestLambda;
+        HF  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
+        opts.lambda = HF.bestLambda;
 
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
         % Record the classification accuracy
         test.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj.beta, fitObj.a0) > 0 ;
-%         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
         
         
         %% Alternative Stopping criterion (hit rate - false alarm rate)
-        hit.rate(numIter, CV) = sum(test.prediction(:,CV)  & Ytest) / sum(Ytest);
-        hit.falserate(numIter, CV) = sum(~test.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        hit.hitRate(numIter, CV) = sum(test.prediction(:,CV)  & Ytest) / sum(Ytest);
+        hit.falseRate(numIter, CV) = sum(~test.prediction(:,CV)  & Ytest) / sum(~Ytest);
         
 
         %% Releveling 
@@ -77,33 +74,30 @@ while true
             % accuracy
             ridge.accuracy(numIter,CV) = NaN;
         else
-        
-        opts = glmnetSet();
-        opts.alpha = 0;
-        % Choose lambda
-        fitObj_cv_ridge = cvglmnet(Xtrain(:,(fitObj.beta ~= 0)'),Ytrain,'binomial', opts, 'class',9,fold_id');
-        opts.lambda = fitObj_cv_ridge.lambda_min;
-        % Fitting ridge regression
-        fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
-        % Record releveling accuracy
-        ridge.prediction(:,CV) = (Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
-        ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
+            opts = glmnetSet();
+            opts.alpha = 0;
+            % Choose lambda
+            fitObj_cv_ridge = cvglmnet(Xtrain(:,(fitObj.beta ~= 0)'),Ytrain,'binomial', opts, 'class',9,fold_id');
+            opts.lambda = fitObj_cv_ridge.lambda_min;
+            % Fitting ridge regression
+            fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
+            % Record releveling accuracy
+            prediction(:,CV) = bsxfun( @plus, Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta, fitObj_ridge.a0) > 0;
+            ridge.accuracy(numIter,CV) = mean(Ytest == prediction(:,CV))';
         end 
         
         
-         % Keeping track of voxels that are being used in the current iteration       
+         %% Keeping track of voxels that are being used in the current iteration       
         used( CV, ~used(CV,:) ) = fitObj.beta ~= 0; 
         
-               
-
     end
     textprogressbar('Done.\n') 
    
 
-    % Take a snapshot, find out all voxels were used at this time point
+    %% Take a snapshot, find out all voxels were used at this time point
     USED{numIter} = used;
 
-    % Record the results, including           
+    %% Record the results     
     % 1) hit.all : how many voxels have been selected        
     hit.all(numIter, :) = sum(used,2);
     % 2) hit.current: how many voxels have been selected in current
@@ -114,34 +108,36 @@ while true
         hit.current(numIter,:) = hit.all(numIter,: ) - hit.all(numIter - 1,:) ;
     end
     % 3) difference between hit rate and false alarm rate
-    hit.diffHF(numIter,:) = hit.rate(numIter,:) - hit.falserate(numIter,:); 
+    hit.diffHF(numIter,:) = hit.hitRate(numIter,:) - hit.falseRate(numIter,:); 
     
  
 
-    %% Printing some results 
-    % Test classification accuracy aganist chance 
+    %% T test
+    % T test: classification accuracy > chance 
     [t,p] = ttest(lasso.accuracy(numIter,:), chance, 'Tail', 'right');
 
     if t == 1 % t could be NaN
 %         numSig = numSig + 1;
         lasso.sig(numIter,:) = 1;
-        disp(['T-test for lasso accuracy against chance. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
+        disp(['T-test for lasso accuracy > chance. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
     else
         lasso.sig(numIter,:) = 0;
-        disp(['T-test for lasso accuracy against chance. Result= ' num2str(t) ',  P = ' num2str(p)]);
+        disp(['T-test for lasso accuracy > chance. Result= ' num2str(t) ',  P = ' num2str(p)]);
     end
     
-
+    % T test: (hit rate - false alarm rate) > 0
     [t2,p2] = ttest(hit.diffHF(numIter,:), 0, 'Tail', 'right');
     
     if t2 == 1 % t could be NaN
         numSig = numSig + 1;
-        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
+        hit.HFsig(numIter,:) = 1;
+        disp(['T-test : (hit rate - false alarm rate) > 0. Result= ' num2str(t) ',  P = ' num2str(p2), ' *']);         
     else
-        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p)]);
+        hit.HFsig(numIter,:) = 0;
+        disp(['T-test : (hit rate - false alarm rate) > 0. Result= ' num2str(t) ',  P = ' num2str(p2)]);
     end
     
-    
+    %% Print some results
     disp('Difference between hit rate and false alarm rate: ');
     disp(num2str(hit.diffHF(numIter,:)));
     disp(['Average difference between hit are and false alarm rate: ' num2str(mean(hit.diffHF(numIter,:))) ]);
@@ -169,7 +165,8 @@ while true
         if STOPPING_COUNTER == STOPPING_RULE;
         % stop, if t-test = 0 n times, where n = STOPPING_RULE
             disp(' ')
-            disp('* Iterative Lasso was terminated, as the classification accuracy is at chance level.')
+%             disp('* Iterative Lasso was terminated, as the classification accuracy is at chance level.')
+            disp('* Iterative Lasso was terminated, as the (hit - false) is about 0.')
             disp('====================================================================')
             disp(' ')
             break
@@ -185,28 +182,9 @@ end
 
 
 
-%% Plot the feature selection plots
-% Plot the hit.all 
-figure(1)
-subplot(1,2,1)
-plot(hit.all,'LineWidth',1.5)
-xlabel({'Iterations'; ' ' ;...
-    '* Each line indicates a different CV blocks' ;...
-    '* the last two iterations were insignificant '},...
-    'FontSize',13);
-ylabel('Number of voxels', 'FontSize',13);
-title ({'Feature selection plot (cumulative)' }, 'FontSize',13);
-set(gca,'xtick',1:size(hit.all(:,1),1))
-
-% plot the hit.current
-subplot(1,2,2)
-plot(hit.current,'LineWidth',1.5)
-    xlabel({'Iterations'; ' ' ;...
-    '* Each line indicates a different CV blocks' ;...
-    '* the last two iterations were insignificant '},...
-    'FontSize',13);
-title ({'Feature selection plot (non - cumulative)' }, 'FontSize',13);
-set(gca,'xtick',1:size(hit.current(:,1),1))
+%% Plot the feature selection process
+figure(1);
+featureSelectionPlot(hit);
 
 
 %% Pooling solution and fitting ridge regression
@@ -246,11 +224,17 @@ else
         fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
 
         % Calculating accuracies
-        final.prediction(:,CV) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  
+        final.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj_Final.beta, fitObj_Final.a0) > 0;
         final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
+        
+        final.hitRate(CV) = sum(final.prediction(:,CV)  & Ytest) / sum(Ytest);
+        final.falseRate(CV) = sum(~final.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        
 
     end
     textprogressbar('Done.\n')
+    
+    final.difference = final.hitRate - final.falseRate;
     
     % Print some results
     disp('Final accuracies: ')

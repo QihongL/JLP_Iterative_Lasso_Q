@@ -5,10 +5,11 @@
 % the lambda that leads to the biggest postive difference between hit rate
 % and false alarm rate. 
 
-function [ bestLambda ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
+function [ HF ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
 
     % Resource perallocation 
-	difference = zeros(K,100);
+	HF.hitrate = zeros(K,100);
+    HF.falserate = zeros(K,100);
     
     % Use lasso (alpha = 1)
     opts = glmnetSet();
@@ -32,20 +33,25 @@ function [ bestLambda ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
         
         % Fit lasso
         fitObj_HF = glmnet(Xtrain_HF, Ytrain_HF, 'binomial', opts);
-               
         % Calculating the prediction
         prediction = bsxfun(@plus, Xtest_HF * fitObj_HF.beta, fitObj_HF.a0) >0;        
         % Calculating hit rate, false rate, and their difference 
-        hitrate = sum(bsxfun(@and, prediction, Ytest_HF)) / sum(Ytest_HF);
-        falserate = sum(bsxfun(@and, ~prediction, Ytest_HF)) / sum(~Ytest_HF);                
-        difference(CV,:) = hitrate - falserate;
-  
+        HF.hitrate(CV,:) = sum(bsxfun(@and, prediction, Ytest_HF)) / sum(Ytest_HF);
+        HF.falserate(CV,:) = sum(bsxfun(@and, prediction, ~Ytest_HF)) / sum(~Ytest_HF);                
+
     end
 
-    % Find the lambda corresponds to the biggest difference
+    %% Calculate the difference
+    HF.difference = HF.hitrate - HF.falserate;
+    
+    %% Plot the hit rate, false rate and difference
+    figure(99);
+    HFcvglmnetPlot(HF);
+    
+    %% Find the lambda corresponds to the biggest difference
     % Note: when there are more than one lambda have the biggest
     % difference, choose the least sparse solution. 
-    indice = find(mean(difference,1) == max(mean(difference,1)) ,1 ,'first');
-    bestLambda = fitObj_HF.lambda(indice);
+    indice = find(mean(HF.difference,1) == max(mean(HF.difference,1)) ,1 ,'first');
+    HF.bestLambda = fitObj_HF.lambda(indice);
    
 end

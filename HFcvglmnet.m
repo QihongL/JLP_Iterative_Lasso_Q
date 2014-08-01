@@ -46,7 +46,7 @@ function [ HF ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
     
     %% Plot the hit rate, false rate and difference
     figure(99);
-    HFcvglmnetPlot(HF);
+    HFcvglmnetPlot(HF.hitrate,HF.falserate,HF.difference);
     
     %% Find the lambda corresponds to the biggest difference
     % Note: when there are more than one lambda have the biggest

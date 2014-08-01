@@ -56,7 +56,7 @@ while true
         opts = glmnetSet();
         opts.alpha = 1;
         % Tuning lambda
-        HFfit(CV)  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
+        HFfit(CV) = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
         opts.lambda = HFfit(CV).bestLambda;
 
         % Fit lasso
@@ -67,8 +67,8 @@ while true
         
         
         %% Alternative Stopping criterion (hit rate - false alarm rate)
-        hit.hitRate(numIter, CV) = sum(test.prediction(:,CV)  & Ytest) / sum(Ytest);
-        hit.falseRate(numIter, CV) = sum(~test.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        hit.hitRate(numIter, CV) = sum(bsxfun(@and, test.prediction(:,CV),  Ytest)) / sum(Ytest);
+        hit.falseRate(numIter, CV) = sum(bsxfun(@and, test.prediction(:,CV), ~Ytest)) / sum(~Ytest);
         
 
         %% Releveling 
@@ -195,6 +195,8 @@ featureSelectionPlot(hit.all, hit.current);
 
 % first, check whether pooling solution is possible
 if numIter - STOPPING_RULE <= 0 
+    % In order to let the process continute, assign some values if it is
+    % going to be terminated
     final.accuracy = NaN(1,10);
     final.hitrate = NaN(1,10);
     final.falserate = NaN(1,10);
@@ -205,7 +207,7 @@ if numIter - STOPPING_RULE <= 0
 else
     % Pooling solutions
     textprogressbar('Fitting ridge on pooled solution: ' );
-    
+
     % Resource preallocation
     final.hitrate = zeros(1,10);
     final.falserate = zeros(1,10);
@@ -227,7 +229,6 @@ else
         opts.alpha = 0;    
         fitObj_cvFinal = cvglmnet (Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
 
-
         % Use the best lambda value
     %     opts.lambda = fitObj_cvFinal.lambda_min;
         opts.lambda = fitObj_cvFinal.lambda_1se;
@@ -239,13 +240,15 @@ else
         final.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj_Final.beta, fitObj_Final.a0) > 0;
         final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
         
+        % Calculating hit/false rate
         final.hitrate(CV) = sum(final.prediction(:,CV)  & Ytest) / sum(Ytest);
-        final.falserate(CV) = sum(~final.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        final.falserate(CV) = sum(final.prediction(:,CV)  & ~Ytest) / sum(~Ytest);
         
 
     end
     textprogressbar('Done.\n')
     
+    % Calculate the difference between hit rate and false alarm rate
     final.difference = final.hitrate - final.falserate;
     
     % Print some results

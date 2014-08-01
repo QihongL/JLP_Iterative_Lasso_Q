@@ -2,8 +2,8 @@ function [  ] = HFcvglmnetPlot( HF )
 %   This function plot the hit rate, false alarm rate, and their difference
     
     %% Set some parameters
-    y_upper = 0.7;
-    y_lower = -0.1;
+    y_upper = 0.9;
+    y_lower = -0.3;
 
     
     %% Ploting 

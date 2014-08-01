@@ -32,6 +32,9 @@ used = false(k,nvoxels);
 while true
     numIter = numIter + 1;
     textprogressbar(['Iterative Lasso: ' num2str(numIter) ' -> ' ]);
+    % Preallocation
+    prediction = zeros(size(CVBLOCKS,1)/10, k);
+    
     for CV = 1:k    
         textprogressbar(CV * 10);
 
@@ -53,8 +56,8 @@ while true
         opts = glmnetSet();
         opts.alpha = 1;
         % Tuning lambda
-        HF  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
-        opts.lambda = HF.bestLambda;
+        HFfit(CV)  = HFcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
+        opts.lambda = HFfit(CV).bestLambda;
 
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
@@ -96,6 +99,7 @@ while true
 
     %% Take a snapshot, find out all voxels were used at this time point
     USED{numIter} = used;
+    HF{numIter} = HFfit;
 
     %% Record the results     
     % 1) hit.all : how many voxels have been selected        
@@ -184,7 +188,7 @@ end
 
 %% Plot the feature selection process
 figure(1);
-featureSelectionPlot(hit);
+featureSelectionPlot(hit.all, hit.current);
 
 
 %% Pooling solution and fitting ridge regression
@@ -192,12 +196,20 @@ featureSelectionPlot(hit);
 % first, check whether pooling solution is possible
 if numIter - STOPPING_RULE <= 0 
     final.accuracy = NaN(1,10);
+    final.hitrate = NaN(1,10);
+    final.falserate = NaN(1,10);
+    final.difference = NaN(1,10);
     disp('* The number of iterations <= the STOPPING_RULE, which suggests the first several iterations are probably all nonsignificant.')
     disp('* So there is no solution to pool, under current stopping rule. ')
     disp(' ');
 else
     % Pooling solutions
     textprogressbar('Fitting ridge on pooled solution: ' );
+    
+    % Resource preallocation
+    final.hitrate = zeros(1,10);
+    final.falserate = zeros(1,10);
+    
     for CV = 1:k
         textprogressbar(CV * 10)
         % Subsetting: find voxels that were selected 
@@ -227,14 +239,14 @@ else
         final.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj_Final.beta, fitObj_Final.a0) > 0;
         final.accuracy(CV) = mean(Ytest == final.prediction(:,CV))';
         
-        final.hitRate(CV) = sum(final.prediction(:,CV)  & Ytest) / sum(Ytest);
-        final.falseRate(CV) = sum(~final.prediction(:,CV)  & Ytest) / sum(~Ytest);
+        final.hitrate(CV) = sum(final.prediction(:,CV)  & Ytest) / sum(Ytest);
+        final.falserate(CV) = sum(~final.prediction(:,CV)  & Ytest) / sum(~Ytest);
         
 
     end
     textprogressbar('Done.\n')
     
-    final.difference = final.hitRate - final.falseRate;
+    final.difference = final.hitrate - final.falserate;
     
     % Print some results
     disp('Final accuracies: ')

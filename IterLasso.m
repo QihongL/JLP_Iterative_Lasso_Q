@@ -53,18 +53,18 @@ while true
 
         %% Fitting Lasso
         
-%         % 1) Find lambda using cvglmnet
-%         opts = glmnetSet();
-%         opts.alpha = 1;
-%         % Fit lasso with cv
-%         fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-%         % Pick the best lambda
-%         opts.lambda = fitObj_cv.lambda_min;        
-
-        % 2) Find lambda mannually (turned out to be the same as cvglmnet)
+        % 1) Find lambda using cvglmnet
         opts = glmnetSet();
-        opts.alpha = 1;  
-        opts.lambda = ERRcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
+        opts.alpha = 1;
+        % Fit lasso with cv
+        fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
+        % Pick the best lambda
+        opts.lambda = fitObj_cv.lambda_min;        
+
+%         % 2) Find lambda mannually (turned out to be the same as cvglmnet)
+%         opts = glmnetSet();
+%         opts.alpha = 1;  
+%         opts.lambda = ERRcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
         
         
         % Fit lasso
@@ -143,9 +143,9 @@ while true
     [t2,p2] = ttest(hit.diffHF(numIter,:), 0, 'Tail', 'right');
     
     if t2 == 1 % t could be NaN
-        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p), ' *']);         
+        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t2) ',  P = ' num2str(p2), ' *']);         
     else
-        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t) ',  P = ' num2str(p)]);
+        disp(['T-test for (hit rate - false alarm rate) against 0. Result= ' num2str(t2) ',  P = ' num2str(p2)]);
     end
     
     
@@ -203,6 +203,9 @@ featureSelectionPlot(hit.all, hit.current);
 % first, check whether pooling solution is possible
 if numIter - STOPPING_RULE <= 0 
     final.accuracy = NaN(1,10);
+    final.hitrate = NaN(1,10);
+    final.falserate = NaN(1,10);
+    final.difference = NaN(1,10);
     disp('* The number of iterations <= the STOPPING_RULE, which suggests the first several iterations are probably all nonsignificant.')
     disp('* So there is no solution to pool, under current stopping rule. ')
     disp(' ');

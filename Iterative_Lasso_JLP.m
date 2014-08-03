@@ -17,9 +17,9 @@ clear; close all; clc;
 % [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
-%% Run all subjects & record the results 
-% Thid block of code can automatically run ten subject for one type of label (e.g. Face)
-% 
+%% Run all subjects with all labels, and save the results 
+
+
 for i = 1 : 3
     % loop over 3 labels
     if i == 1
@@ -32,7 +32,7 @@ for i = 1 : 3
         end
     end
     
-    
+     
     % Loop over 10 subjects
     for SubNum = 1:10
         disp(['Calculating: ' label ' | Subject: ' num2str(SubNum) '...' ])
@@ -45,8 +45,8 @@ for i = 1 : 3
 
 
         %% Choose the version of Iterative Lasso
-        [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
-    %     [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
+%         [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
+        [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
         %% Get results, and save them
@@ -64,12 +64,12 @@ for i = 1 : 3
         result(SubNum).final_hitRate = final.hitrate;
         result(SubNum).final_falseRate = final.falserate;
         result(SubNum).final_difference = final.difference;
-    %     result(SubNum).HFsig = hit.HFsig;    
-    %     result(SubNum).HF_tunning_lambda = HF;
+        result(SubNum).HFsig = hit.HFsig;    
+        result(SubNum).HF_tunning_lambda = HF;
 
 
-        save(['JLP_ACC_' label '.mat'], 'result');
     end
+    save(['JLP_HF_' label '.mat'], 'result');
 end
 
 

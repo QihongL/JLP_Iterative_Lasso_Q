@@ -1,7 +1,7 @@
 %% Analysis: compare two version of iterative lasso
 clear;clc;close all;
 % Pick a label
-label = 'TrueThings';
+label = 'TrueFaces';
 disp('------------------------------------------------')
 disp(['Label = ' label]);
 
@@ -10,39 +10,38 @@ disp(['Label = ' label]);
 %% Compare number of solvable subject (total)
 % Error
 load(['JLP_ERR_' label '.mat']);
-solv.acc = false(1,10);
+ERR.solvable = false(1,10);
 for SubNum = 1:10
     i = SubNum;
     % final accuracy is NaN => not solvable
     if ~isnan(result(i).finalAccuracy(1))
         % Get the indices for non-solvable subject
-        solv.acc(i) = true;
+        ERR.solvable(i) = true;
     end
     % Calculate the number of non-solvable subject
-    solv.acc_num = sum(solv.acc);
+    ERR.solvable_num = sum(ERR.solvable);
 end
 
 
 % Hit/False
 load(['JLP_HF_' label '.mat'])
-solv.HF = false(1,10);
+HF.solvable = false(1,10);
 for SubNum = 1:10
     i = SubNum;
     % final accuracy is NaN => not solvable
     if ~isnan(result(i).finalAccuracy(1))
         % Get the indices for non-solvable subject
-        solv.HF(i) = true;
+        HF.solvable(i) = true;
     end
     % Calculate the number of non-solvable subject
-    solv.HF_num = sum(solv.HF);
+    HF.solvable_num = sum(HF.solvable);
 end
 
 % Display number of solvable subjects
-disp(' ')
 disp('------------------------------------------------')
 disp('Solvable subjects: ' );
-disp(['Error:     ' num2str(solv.acc) '  =  ' num2str(solv.acc_num)])
-disp(['Hit/False: ' num2str(solv.HF) '  =  ' num2str(solv.HF_num)])
+disp(['Error:     ' num2str(ERR.solvable) '  =  ' num2str(ERR.solvable_num)])
+disp(['Hit/False: ' num2str(HF.solvable) '  =  ' num2str(HF.solvable_num)])
 
 
 
@@ -51,38 +50,38 @@ disp(['Hit/False: ' num2str(solv.HF) '  =  ' num2str(solv.HF_num)])
 % Error
 load(['JLP_ERR_' label '.mat']);
 % Resource preallocation
-voxels_acc.all = zeros(10,10);
+ERR.voxels_all = zeros(10,10);
 % Get data (This version does not exclude unsolvable subjects)
 for SubNum = 1:10
     i = SubNum;
-    voxels_acc.all(i,:) = result(i).hitAll(end,:);
+    ERR.voxels_all(i,:) = result(i).hitAll(end,:);
 end
 
 % For hit/false
 load(['JLP_HF_' label '.mat'])
 % Resource preallocation
-voxels_HF.all = zeros(10,10);
+HF.voxels_all = zeros(10,10);
 % Get data (This version does not exclude unsolvable subjects)
 for SubNum = 1:10
     i = SubNum;
-    voxels_HF.all(i,:) = result(i).hitAll(end,:);
+    HF.voxels_all(i,:) = result(i).hitAll(end,:);
 end
 
 % t test
-[t_all, p_all] = ttest(voxels_HF.all(:),voxels_acc.all(:));
+[t_all, p_all] = ttest(HF.voxels_all(:),ERR.voxels_all(:));
  
 % exclude non-solvable subjects
-voxels_acc.solvable = voxels_acc.all(solv.acc,:);
-voxels_HF.solvable = voxels_HF.all(solv.HF,:);
-[t_solvable, p_solvable] = ttest( mean(voxels_HF.solvable),mean(voxels_acc.solvable) );
+ERR.voxels_solvableSub = ERR.voxels_all(ERR.solvable,:);
+HF.voxels_solvableSub = HF.voxels_all(HF.solvable,:);
+[t_solvable, p_solvable] = ttest( mean(HF.voxels_solvableSub),mean(ERR.voxels_solvableSub) );
 
 % Display the total number of voxels were being selected (average accross subject)
 disp(' ')
 disp('------------------------------------------------')
 disp('Total number of voxels were being selected (including unsolvable subjects): ' );
 fprintf('\t\t Error\t\t Hit/False \t T-test \t P-value \n' );
-fprintf('All_Sub %15.2f %16.2f %12d %17.4f \n', mean(voxels_acc.all(:)), mean(voxels_HF.all(:)), t_all, p_all );
-fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(voxels_acc.solvable(:)), mean(voxels_HF.solvable(:)), t_solvable, p_solvable );
+fprintf('All_Sub %15.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_all(:)), mean(HF.voxels_all(:)), t_all, p_all );
+fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_solvableSub(:)), mean(HF.voxels_solvableSub(:)), t_solvable, p_solvable );
 
 
 
@@ -90,18 +89,18 @@ fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(voxels_acc.solvable(:)), m
 
 % Error
 load(['JLP_ERR_' label '.mat']);
-numIter_acc.all = zeros(1,10);
+ERR.numIterAll = zeros(1,10);
 for SubNum = 1:10
     i = SubNum;
-    numIter_acc.all(i) = size(result(i).lasso_sig,1);
+    ERR.numIterAll(i) = size(result(i).lasso_sig,1);
 end
 
 % For hit/false
 load(['JLP_HF_' label '.mat']);
-numIter_HF.all = zeros(1,10);
+HF.numIterAll = zeros(1,10);
 for SubNum = 1:10
     i = SubNum;
-    numIter_HF.all(i) = size(result(i).HFsig,1);
+    HF.numIterAll(i) = size(result(i).HFsig,1);
 end
 
 
@@ -113,33 +112,110 @@ disp(' ')
 disp('------------------------------------------------')
 disp('Number of iterations(all subjects): ' );
 fprintf('Error\t\t')
-fprintf('%4d  ', numIter_acc.all)
-fprintf(' = %.2f', mean(numIter_acc.all))
+fprintf('%4d  ', ERR.numIterAll)
+fprintf(' = %.2f', mean(ERR.numIterAll))
 fprintf('\n')
 fprintf('Hit/False\t')
-fprintf('%4d  ', numIter_HF.all)
-fprintf(' = %.2f', mean(numIter_HF.all))
+fprintf('%4d  ', HF.numIterAll)
+fprintf(' = %.2f', mean(HF.numIterAll))
 fprintf('\n')
 disp(' ')
 
 % Change unsolvable subjects to NaN
-numIter_acc.solve = numIter_acc.all .* solv.acc;
-numIter_HF.solve = numIter_HF.all .* solv.HF;
-numIter_acc.solve(numIter_acc.solve == 0) = NaN;
-numIter_HF.solve(numIter_HF.solve == 0) = NaN;
+ERR.numIter_solvableSub = ERR.numIterAll .* ERR.solvable;
+HF.numIter_solvableSub = HF.numIterAll .* HF.solvable;
+ERR.numIter_solvableSub(ERR.numIter_solvableSub == 0) = NaN;
+HF.numIter_solvableSub(HF.numIter_solvableSub == 0) = NaN;
 
-disp('Number of iterations(only sovlable subjects): ' );
+disp('Number of iterations(excluding unsovlable subjects): ' );
 fprintf('Error\t\t')
-fprintf('%4d  ', numIter_acc.solve)
-fprintf(' = %.2f', mean(numIter_acc.all(solv.acc)))
+fprintf('%4d  ', ERR.numIter_solvableSub)
+fprintf(' = %.2f', mean(ERR.numIterAll(ERR.solvable)))
 fprintf('\n')
 fprintf('Hit/False \t')
-fprintf('%4d  ', numIter_HF.solve)
-fprintf(' = %.2f', mean(numIter_HF.all(solv.HF)))
+fprintf('%4d  ', HF.numIter_solvableSub)
+fprintf(' = %.2f', mean(HF.numIterAll(HF.solvable)))
 fprintf('\n')
 disp(' ')
 
 
 
-%% Compare accuracy, hit & false
+%% Compare accuracy
+% Error
+load(['JLP_ERR_' label '.mat']);
+ERR.accuracy = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERR.accuracy(i) = mean(result(i).finalAccuracy);
+end
+
+% For hit/false
+load(['JLP_HF_' label '.mat']);
+HF.accuracy = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    HF.accuracy(i) = mean(result(i).finalAccuracy);
+end
+
+
+disp('------------------------------------------------')
+disp('Final classification accuracy: ')
+fprintf('Error:\t  ')
+fprintf('%10.4f', ERR.accuracy);
+fprintf('  = % 6.4f \n', nanmean(ERR.accuracy));
+fprintf('Hit/False:')
+fprintf('%10.4f', HF.accuracy);
+fprintf('  = % 6.4f \n', nanmean(HF.accuracy));
+disp(' ')
+
+
+%% Compare hit/false rate
+% Error
+load(['JLP_ERR_' label '.mat']);
+HF.hitRate= zeros(1,10);
+HF.falseRate = zeros(1,10);
+HF.difference = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    HF.hitRate(i) = mean(result(i).final_hitRate);
+    HF.falseRate(i) = mean(result(i).final_falseRate);
+    HF.difference(i) = mean(result(i).final_difference);
+end
+
+% For hit/false
+load(['JLP_HF_' label '.mat']);
+ERR.hitRate= zeros(1,10);
+ERR.falseRate = zeros(1,10);
+ERR.difference = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERR.hitRate(i) = mean(result(i).final_hitRate);
+    ERR.falseRate(i) = mean(result(i).final_falseRate);
+    ERR.difference(i) = mean(result(i).final_difference);
+end
+
+
+disp('------------------------------------------------')
+disp('Final hit rate, false alarm rate and their differences: ')
+fprintf('Error:\n')
+fprintf('Hit Rate:   ')
+fprintf('%10.4f', ERR.hitRate);
+fprintf('  = % 6.4f \n', nanmean(ERR.hitRate));
+fprintf('False Rate: ')
+fprintf('%10.4f', ERR.falseRate);
+fprintf('  = % 6.4f \n', nanmean(ERR.falseRate));
+fprintf('Difference: ')
+fprintf('%10.4f', ERR.difference);
+fprintf('  = % 6.4f \n', nanmean(ERR.difference));
+fprintf('\n')
+fprintf('Hit/False:\n')
+fprintf('Hit Rate:   ')
+fprintf('%10.4f', HF.hitRate);
+fprintf('  = % 6.4f \n', nanmean(HF.hitRate));
+fprintf('False Rate: ')
+fprintf('%10.4f', HF.falseRate);
+fprintf('  = % 6.4f \n', nanmean(HF.falseRate));
+fprintf('Difference: ')
+fprintf('%10.4f', HF.difference);
+fprintf('  = % 6.4f \n', nanmean(HF.difference));
 

@@ -171,7 +171,7 @@ disp(' ')
 
 %% Compare hit/false rate
 % Error
-load(['JLP_ERR_' label '.mat']);
+load(['JLP_HF_' label '.mat']);
 HF.hitRate= zeros(1,10);
 HF.falseRate = zeros(1,10);
 HF.difference = zeros(1,10);
@@ -183,7 +183,7 @@ for SubNum = 1:10
 end
 
 % For hit/false
-load(['JLP_HF_' label '.mat']);
+load(['JLP_ERR_' label '.mat']);
 ERR.hitRate= zeros(1,10);
 ERR.falseRate = zeros(1,10);
 ERR.difference = zeros(1,10);

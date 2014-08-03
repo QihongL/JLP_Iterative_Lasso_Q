@@ -1,7 +1,7 @@
 %% Analysis: compare two version of iterative lasso
 clear;clc;close all;
 % Pick a label
-label = 'Faces';
+label = 'TrueThings';
 disp('------------------------------------------------')
 disp(['Label = ' label]);
 
@@ -9,7 +9,7 @@ disp(['Label = ' label]);
 
 %% Compare number of solvable subject (total)
 % Error
-load(['JLP_acc_' label '.mat']);
+load(['JLP_ERR_' label '.mat']);
 solv.acc = false(1,10);
 for SubNum = 1:10
     i = SubNum;
@@ -49,7 +49,7 @@ disp(['Hit/False: ' num2str(solv.HF) '  =  ' num2str(solv.HF_num)])
 %% Compare number of voxels selected (total)
 
 % Error
-load(['JLP_acc_' label '.mat']);
+load(['JLP_ERR_' label '.mat']);
 % Resource preallocation
 voxels_acc.all = zeros(10,10);
 % Get data (This version does not exclude unsolvable subjects)
@@ -89,11 +89,11 @@ fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(voxels_acc.solvable(:)), m
 %% Compare number of iterations 
 
 % Error
-load(['JLP_acc_' label '.mat']);
+load(['JLP_ERR_' label '.mat']);
 numIter_acc.all = zeros(1,10);
 for SubNum = 1:10
     i = SubNum;
-    numIter_acc.all(i) = size(result(i).lassoSig,1);
+    numIter_acc.all(i) = size(result(i).lasso_sig,1);
 end
 
 % For hit/false
@@ -104,27 +104,38 @@ for SubNum = 1:10
     numIter_HF.all(i) = size(result(i).HFsig,1);
 end
 
+
+
+
+
 % Display reuslts
 disp(' ')
 disp('------------------------------------------------')
 disp('Number of iterations(all subjects): ' );
 fprintf('Error\t\t')
-fprintf('%2d  ', numIter_acc.all)
+fprintf('%4d  ', numIter_acc.all)
 fprintf(' = %.2f', mean(numIter_acc.all))
 fprintf('\n')
 fprintf('Hit/False\t')
-fprintf('%2d  ', numIter_HF.all)
+fprintf('%4d  ', numIter_HF.all)
 fprintf(' = %.2f', mean(numIter_HF.all))
 fprintf('\n')
 disp(' ')
+
+% Change unsolvable subjects to NaN
+numIter_acc.solve = numIter_acc.all .* solv.acc;
+numIter_HF.solve = numIter_HF.all .* solv.HF;
+numIter_acc.solve(numIter_acc.solve == 0) = NaN;
+numIter_HF.solve(numIter_HF.solve == 0) = NaN;
+
 disp('Number of iterations(only sovlable subjects): ' );
 fprintf('Error\t\t')
-fprintf('%2d  ', numIter_acc.all(solv.acc))
+fprintf('%4d  ', numIter_acc.solve)
 fprintf(' = %.2f', mean(numIter_acc.all(solv.acc)))
 fprintf('\n')
 fprintf('Hit/False \t')
-fprintf('%2d  ', numIter_HF.all(solv.HF))
-fprintf(' \t = %.2f', mean(numIter_HF.all(solv.acc)))
+fprintf('%4d  ', numIter_HF.solve)
+fprintf(' = %.2f', mean(numIter_HF.all(solv.HF)))
 fprintf('\n')
 disp(' ')
 

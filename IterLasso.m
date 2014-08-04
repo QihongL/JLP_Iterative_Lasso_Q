@@ -54,17 +54,17 @@ while true
         %% Fitting Lasso
         
         % 1) Find lambda using cvglmnet
-        opts = glmnetSet();
-        opts.alpha = 1;
-        % Fit lasso with cv
-        fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
-        % Pick the best lambda
-        opts.lambda = fitObj_cv.lambda_min;        
-
-%         % 2) Find lambda mannually (turned out to be the same as cvglmnet)
 %         opts = glmnetSet();
-%         opts.alpha = 1;  
-%         opts.lambda = ERRcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
+%         opts.alpha = 1;
+%         % Fit lasso with cv
+%         fitObj_cv = cvglmnet(Xtrain,Ytrain,'binomial', opts, 'class',9,fold_id');
+%         % Pick the best lambda
+%         opts.lambda = fitObj_cv.lambda_min;        
+
+        % 2) Find lambda mannually (turned out to be the same as cvglmnet)
+        opts = glmnetSet();
+        opts.alpha = 1;  
+        opts.lambda = ERRcvglmnet( Xtrain, Ytrain, k - 1, fold_id );
         
         
         % Fit lasso

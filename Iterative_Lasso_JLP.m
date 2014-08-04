@@ -45,8 +45,8 @@ for i = 1 : 3
 
 
         %% Choose the version of Iterative Lasso
-%         [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
-        [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
+        [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
+%         [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
         %% Get results, and save them
@@ -64,12 +64,14 @@ for i = 1 : 3
         result(SubNum).final_hitRate = final.hitrate;
         result(SubNum).final_falseRate = final.falserate;
         result(SubNum).final_difference = final.difference;
-        result(SubNum).HFsig = hit.HFsig;    
-        result(SubNum).HF_tunning_lambda = HF;
+        
+        % specific to HFcvglmnet
+%         result(SubNum).HFsig = hit.HFsig;    
+%         result(SubNum).HF_tunning_lambda = HF;
 
 
     end
-    save(['JLP_HF_' label '.mat'], 'result');
+    save(['JLP_ERRmanual_' label '.mat'], 'result');
 end
 
 

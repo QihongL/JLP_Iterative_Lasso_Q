@@ -12,16 +12,15 @@ clear; close all; clc;
 % Y = metadata(SubNum).TrueFaces;
 % 
 % %% Run Iterative Lasso
-% 
 % [ hit, final, lasso, ridge, USED ] = IterLasso(X,Y,CVBLOCKS,2);
 % [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
 %% Run all subjects with all labels, and save the results 
 
-
+% loop over 3 labels
 for i = 1 : 3
-    % loop over 3 labels
+
     if i == 1
         label = 'TrueFaces';
     else if i == 2
@@ -40,7 +39,6 @@ for i = 1 : 3
         %% prep
         [X,metadata] = loadMRIData('jlp',SubNum);
         CVBLOCKS = metadata(SubNum).CVBLOCKS;
-    %     Y = metadata(SubNum).TrueFaces;
         Y = metadata(SubNum).(label);
 
 
@@ -65,15 +63,19 @@ for i = 1 : 3
         result(SubNum).final_falseRate = final.falserate;
         result(SubNum).final_difference = final.difference;
         
+        % specific to cvglmnet
+        result(SubNum).lassoBestLambda = lasso.bestLambda;
+        
         % specific to HFcvglmnet
 %         result(SubNum).HFsig = hit.HFsig;    
 %         result(SubNum).HF_tunning_lambda = HF;
 
 
     end
-    save(['JLP_ERRmanual_' label '.mat'], 'result');
+    disp('Save the results!')
+    save(['JLP_ERR_' label '.mat'], 'result');
 end
-
+disp('Done for all subjects and all labels!')
 
 
 %% Find XYZs for the solutions

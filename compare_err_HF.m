@@ -111,11 +111,16 @@ disp('Total number of voxels were being selected (including unsolvable subjects)
 % fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_solvableSub(:)), mean(HF.voxels_solvableSub(:)), t_solvable, p_solvable );
 % disp(' ');
 
+%For comparing ERRcvglmnet vc cvglmnet
+
 fprintf('\t\t All Sub \t Solvable Sub\n')
+
 fprintf('Error:\t\t ')
 fprintf('%7.2f  %13.2f \n', mean(ERR.voxels_all(:)), mean(ERR.voxels_solvableSub(:)))
+
 fprintf('ErrorManual:\t ')
 fprintf('%7.2f  %13.2f \n', mean(ERRmanual.voxels_all(:)), mean(ERRmanual.voxels_solvableSub(:)))
+
 fprintf('Hit/False:\t ')
 fprintf('%7.2f  %13.2f \n', mean(HF.voxels_all(:)), mean(HF.voxels_solvableSub(:)))
 
@@ -156,6 +161,7 @@ fprintf('Error\t\t')
 fprintf('%4d  ', ERR.numIterAll)
 fprintf(' = %.2f', mean(ERR.numIterAll))
 fprintf('\n')
+% For comparing ERRcvglmnet vc cvglmnet
 fprintf('ErrorManual\t')
 fprintf('%4d  ', ERRmanual.numIterAll)
 fprintf(' = %.2f', mean(ERRmanual.numIterAll))

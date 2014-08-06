@@ -320,4 +320,43 @@ fprintf('  = % 6.4f \n', nanmean(HF.falseRate));
 fprintf('Difference: ')
 fprintf('%10.4f', HF.difference);
 fprintf('  = % 6.4f \n', nanmean(HF.difference));
+disp(' ')
 
+
+
+%% Compare best lambda values between cvglmnet & HFcvglmnet
+disp('------------------------------------------------')
+for numIter = 1:2
+% numIter = 1;
+
+    % Error
+    load(['JLP_ERR_' label '.mat']);
+    ERR.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+        ERR.bestLambda(i,:) = result(subNum).lassoBestLambda(numIter,:);
+    end
+
+    % For hit/false
+    load(['JLP_HF_' label '.mat']);
+    HF.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+
+        temp = zeros(1,10);
+        for j = 1:10
+            temp(j) = result(subNum).HF_tunning_lambda{numIter}(j).bestLambda;
+        end
+
+        HF.bestLambda(i,:) = temp;
+    end
+
+    t_lambda = ttest(ERR.bestLambda(:), HF.bestLambda(:));
+
+
+    
+    fprintf('Lambda value for iteration %d: \n', numIter)
+    fprintf('\t\t Error\t\tHit/False \t  \n')
+    fprintf('Lambda Value: %9.4f %14.4f  \n', mean(ERR.bestLambda(:)), mean(HF.bestLambda(:)))
+    fprintf('T test: %10d \n', t_lambda)
+end

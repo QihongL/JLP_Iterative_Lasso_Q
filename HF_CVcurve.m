@@ -3,23 +3,26 @@
 clear; close all;
 
 %% Load the data
-load('JLP_HF_TrueFaces.mat')
+label = 'TrueFaces';
+load(['JLP_HF_' label '.mat'])
 
 %% Plot the CV curve for subject i, iteration j
-% specify the parameters
-subNum = 1;
-numIter = 1;
-% Get data 
-hitRate = result(subNum).HF_tunning_lambda{numIter}.hitrate;
-falseRate = result(subNum).HF_tunning_lambda{numIter}.falserate;
-difference = result(subNum).HF_tunning_lambda{numIter}.difference;
 
-figure(1)
-HFcvglmnetPlot( hitRate, falseRate, difference)
+% % specify the parameters
+% subNum = 1;
+% numIter = 1;
+% % Get data 
+% hitRate = result(subNum).HF_tunning_lambda{numIter}.hitrate;
+% falseRate = result(subNum).HF_tunning_lambda{numIter}.falserate;
+% difference = result(subNum).HF_tunning_lambda{numIter}.difference;
+% 
+% figure(1)
+% HFcvglmnetPlot( hitRate, falseRate, difference)
 
 
 
 %% Plot the CV curve for iteration j for all subjects
+
 % specify the paratemer
 numIter = 1;
 
@@ -44,5 +47,6 @@ end
 
 figure(2)
 HFcvglmnetPlot( hitRate, falseRate, difference)
+
 
 

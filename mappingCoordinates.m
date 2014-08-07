@@ -12,19 +12,26 @@ load('JLP_ERR_TrueFaces.mat')
 numSigIter = size(result(subNum).used,2);
 
 % Get the XYZs
-cod = metadata(subNum).xyz_tlrc([find(result(subNum).used{numSigIter}(cvBlock,:) == 1)],:)
+cod = metadata(subNum).xyz_tlrc([find(result(subNum).used{numSigIter}(cvBlock,:) == 1)],:);
 cod1 = round(cod);
 
-% Origin
-tlrc_min = [-70, -102, -42];
+
+%% TLRC
+tlrc = load_nii('TT_N27_SurfVol.nii');
+
+% Set the origin
+% tlrc_min = [-70, -102, -42];
+tlrc_min = [tlrc.hdr.hist.srow_x(end),tlrc.hdr.hist.srow_y(end),tlrc.hdr.hist.srow_z(end)];
 
 % Transformation
 cod1ijk = bsxfun(@minus, cod1, tlrc_min);
 
-tlrc_dim = [141, 172, 110];
+% tlrc_dim = [141, 172, 110];
+tlrc_dim = [tlrc.hdr.dime.dim(2),tlrc.hdr.dime.dim(3),tlrc.hdr.dime.dim(4)];
+
 img = zeros(tlrc_dim);
 
-ix = sub2ind(tlrc_dim,cod1ijk(:,1),cod1ijk(:,2)-20,cod1ijk(:,3));
+ix = sub2ind(tlrc_dim,cod1ijk(:,1),cod1ijk(:,2),cod1ijk(:,3));
 
 img(ix) = 1;
 

@@ -1,0 +1,510 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>compare_err_HF</title><meta name="generator" content="MATLAB 8.2"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2014-08-07"><meta name="DC.source" content="compare_err_HF.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, tt, code { font-size:12px; }
+pre { margin:0px 0px 20px; }
+pre.error { color:red; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><h2>Contents</h2><div><ul><li><a href="#1">Analysis: compare two version of iterative lasso</a></li><li><a href="#2">Pick a label</a></li><li><a href="#3">Number of solvable subject</a></li><li><a href="#4">Feature selection</a></li><li><a href="#5">Tuning lambda values</a></li><li><a href="#6">Compare number of iterations</a></li><li><a href="#7">Compare accuracy</a></li><li><a href="#8">Compare hit/false rate</a></li></ul></div><h2>Analysis: compare two version of iterative lasso<a name="1"></a></h2><p>In this document, we are comparing the results of iterative lasso using two different methods: error or hit/ false alarm rate. These methods have direct influence on tuning lambda value and controling stopping criterion, which leads to quite different outcomes.</p><h2>Pick a label<a name="2"></a></h2><pre class="codeoutput">Label = TrueThings
+</pre><h2>Number of solvable subject<a name="3"></a></h2><p>Here, '1' means solvable whereas '0' means the subject was unsolvable such that the first two iterations were both insignificant. Base on the results, hit / false rate criterion is able to make more subjects solvable.</p><pre class="codeoutput">Solvable subjects: 
+Error:       1  0  0  0  0  0  0  0  0  0  =  1
+Hit/False:   1  0  1  0  0  0  0  0  1  1  =  4
+</pre><h2>Feature selection<a name="4"></a></h2><p>Here's a comparison about the total number of voxels selected in the end. It seems that by using hit/false criterion, many more voxels were selected. This is also true when excluding unsolvable subjects.</p><pre class="codeoutput">Total number of voxels were being selected : 
+		 All Sub 	 Solvable Sub
+Error:		   41.43         149.40 
+Hit/False:	  174.49         223.03 
+</pre><h2>Tuning lambda values<a name="5"></a></h2><p>Here's a comparison for the lambda values used for lasso. More specifically, in each iteration of lasso, it needs to tune lambda, and here's the comparison for that lambda values across two criterion. Overall, hit / false rate criterion is giving us a smaller lambda value.</p><pre class="codeoutput">Lambda value for iteration 1: 
+		 Error		Hit/False 	  
+Lambda Value:    0.0810         0.0166  
+T test:          1 
+Lambda value for iteration 2: 
+		 Error		Hit/False 	  
+Lambda Value:    0.1138         0.0774  
+T test:          1 
+</pre><h2>Compare number of iterations<a name="6"></a></h2><p>When considering all subjects, hit / false rate version runs more iterations on average. However, this effect seems subtle when excluding unsolvable subjects.</p><pre class="codeoutput"> 
+Number of iterations(all subjects): 
+Error		   3     2     2     2     2     2     2     2     2     2   = 2.10
+Hit/False	   4     2     3     2     2     2     2     2     3     4   = 2.60
+ 
+Number of iterations(excluding unsovlable subjects): 
+Error		   3   NaN   NaN   NaN   NaN   NaN   NaN   NaN   NaN   NaN   = 3.00
+Hit/False 	   4   NaN     3   NaN   NaN   NaN   NaN   NaN     3     4   = 3.50
+ 
+</pre><h2>Compare accuracy<a name="7"></a></h2><p>Unsurprisingly, iterative lasso using error obtained better accuracy.</p><pre class="codeoutput">Final classification accuracy: 
+Error:	        0.7067       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  =  0.7067 
+Hit/False:      0.7044       NaN    0.6778       NaN       NaN       NaN       NaN       NaN    0.6311    0.6911  =  0.6761 
+ 
+</pre><h2>Compare hit/false rate<a name="8"></a></h2><p>Suprisingly, iterative lasso using hit / false rate does not give a better hit / false rate.</p><pre class="codeoutput">Final hit rate, false alarm rate and their differences: 
+Error:
+Hit Rate:       0.4533       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  =  0.4533 
+False Rate:     0.1667       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  =  0.1667 
+Difference:     0.2867       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN       NaN  =  0.2867 
+
+Hit/False:
+Hit Rate:       0.4400       NaN    0.3800       NaN       NaN       NaN       NaN       NaN    0.3333    0.3867  =  0.3850 
+False Rate:     0.1633       NaN    0.1733       NaN       NaN       NaN       NaN       NaN    0.2200    0.1567  =  0.1783 
+Difference:     0.2767       NaN    0.2067       NaN       NaN       NaN       NaN       NaN    0.1133    0.2300  =  0.2067 
+ 
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2013b</a><br></p></div><!--
+##### SOURCE BEGIN #####
+%% Analysis: compare two version of iterative lasso
+% In this document, we are comparing the results of iterative lasso using
+% two different methods: error or hit/ false alarm rate. These methods have
+% direct influence on tuning lambda value and controling stopping
+% criterion, which leads to quite different outcomes.
+clear;clc;close all;
+
+
+%% Pick a label
+label = 'TrueThings';
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp(['Label = ' label]);
+
+
+
+%% Number of solvable subject 
+% Here, '1' means solvable whereas '0' means the subject was unsolvable
+% such that the first two iterations were both insignificant. Base on the
+% results, hit / false rate criterion is able to make more subjects
+% solvable.
+
+% Error
+load(['JLP_ERR_' label '.mat']);
+ERR.solvable = false(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    % final accuracy is NaN => not solvable
+    if ~isnan(result(i).finalAccuracy(1))
+        % Get the indices for non-solvable subject
+        ERR.solvable(i) = true;
+    end
+    % Calculate the number of non-solvable subject
+    ERR.solvable_num = sum(ERR.solvable);
+end
+
+% Error Mannual
+load(['JLP_ERRmanual_' label '.mat']);
+ERRmanual.solvable = false(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    % final accuracy is NaN => not solvable
+    if ~isnan(result(i).finalAccuracy(1))
+        % Get the indices for non-solvable subject
+        ERRmanual.solvable(i) = true;
+    end
+    % Calculate the number of non-solvable subject
+    ERRmanual.solvable_num = sum(ERRmanual.solvable);
+end
+
+% Hit/False
+load(['JLP_HF_' label '.mat'])
+HF.solvable = false(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    % final accuracy is NaN => not solvable
+    if ~isnan(result(i).finalAccuracy(1))
+        % Get the indices for non-solvable subject
+        HF.solvable(i) = true;
+    end
+    % Calculate the number of non-solvable subject
+    HF.solvable_num = sum(HF.solvable);
+end
+
+
+% Display number of solvable subjects
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp('Solvable subjects: ' );
+disp(['Error:       ' num2str(ERR.solvable) '  =  ' num2str(ERR.solvable_num)])
+
+% disp(['ErrorManual: ' num2str(ERRmanual.solvable) '  =  ' num2str(ERRmanual.solvable_num)])
+
+disp(['Hit/False:   ' num2str(HF.solvable) '  =  ' num2str(HF.solvable_num)])
+
+
+
+%% Feature selection
+% Here's a comparison about the total number of voxels selected in the end.
+% It seems that by using hit/false criterion, many more voxels were
+% selected. This is also true when excluding unsolvable subjects. 
+
+
+% Error
+load(['JLP_ERR_' label '.mat']);
+% Resource preallocation
+ERR.voxels_all = zeros(10,10);
+% Get data (This version does not exclude unsolvable subjects)
+for SubNum = 1:10
+    i = SubNum;
+    ERR.voxels_all(i,:) = result(i).hitAll(end,:);
+end
+
+% Error Manual
+load(['JLP_ERRmanual_' label '.mat']);
+% Resource preallocation
+ERRmanual.voxels_all = zeros(10,10);
+% Get data (This version does not exclude unsolvable subjects)
+for SubNum = 1:10
+    i = SubNum;
+    ERRmanual.voxels_all(i,:) = result(i).hitAll(end,:);
+end
+
+% For hit/false
+load(['JLP_HF_' label '.mat'])
+% Resource preallocation
+HF.voxels_all = zeros(10,10);
+% Get data (This version does not exclude unsolvable subjects)
+for SubNum = 1:10
+    i = SubNum;
+    HF.voxels_all(i,:) = result(i).hitAll(end,:);
+end
+
+% t test
+[t_all, p_all] = ttest(HF.voxels_all(:),ERR.voxels_all(:));
+ 
+% exclude non-solvable subjects
+ERR.voxels_solvableSub = ERR.voxels_all(ERR.solvable,:);
+ERRmanual.voxels_solvableSub = ERRmanual.voxels_all(ERRmanual.solvable,:);
+HF.voxels_solvableSub = HF.voxels_all(HF.solvable,:);
+[t_solvable, p_solvable] = ttest( mean(HF.voxels_solvableSub),mean(ERR.voxels_solvableSub) );
+
+% Display the total number of voxels were being selected (average accross subject)
+% disp(' ')
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp('Total number of voxels were being selected : ' );
+
+% fprintf('\t\t Error\t\t Hit/False \t T-test \t P-value \n' );
+% fprintf('All_Sub %15.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_all(:)), mean(HF.voxels_all(:)), t_all, p_all );
+% fprintf('Solvable %14.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_solvableSub(:)), mean(HF.voxels_solvableSub(:)), t_solvable, p_solvable );
+% disp(' ');
+
+%For comparing ERRcvglmnet vc cvglmnet
+
+fprintf('\t\t All Sub \t Solvable Sub\n')
+
+fprintf('Error:\t\t ')
+fprintf('%7.2f  %13.2f \n', mean(ERR.voxels_all(:)), mean(ERR.voxels_solvableSub(:)))
+
+% fprintf('ErrorManual:\t ')
+% fprintf('%7.2f  %13.2f \n', mean(ERRmanual.voxels_all(:)), mean(ERRmanual.voxels_solvableSub(:)))
+
+fprintf('Hit/False:\t ')
+fprintf('%7.2f  %13.2f \n', mean(HF.voxels_all(:)), mean(HF.voxels_solvableSub(:)))
+
+
+%% Tuning lambda values
+% Here's a comparison for the lambda values used for lasso. More
+% specifically, in each iteration of lasso, it needs to tune lambda, and
+% here's the comparison for that lambda values across two criterion.
+% Overall, hit / false rate criterion is giving us a smaller lambda value.
+
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+for numIter = 1:2
+% numIter = 1;
+
+    % Error
+    load(['JLP_ERR_' label '.mat']);
+    ERR.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+        ERR.bestLambda(i,:) = result(subNum).lassoBestLambda(numIter,:);
+    end
+
+    % For hit/false
+    load(['JLP_HF_' label '.mat']);
+    HF.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+
+        temp = zeros(1,10);
+        for j = 1:10
+            temp(j) = result(subNum).HF_tunning_lambda{numIter}(j).bestLambda;
+        end
+
+        HF.bestLambda(i,:) = temp;
+    end
+
+    t_lambda = ttest(ERR.bestLambda(:), HF.bestLambda(:));
+
+
+    
+    fprintf('Lambda value for iteration %d: \n', numIter)
+    fprintf('\t\t Error\t\tHit/False \t  \n')
+    fprintf('Lambda Value: %9.4f %14.4f  \n', mean(ERR.bestLambda(:)), mean(HF.bestLambda(:)))
+    fprintf('T test: %10d \n', t_lambda)
+end
+
+
+
+%% Compare number of iterations 
+% When considering all subjects, hit / false rate version runs more
+% iterations on average. However, this effect seems subtle when excluding
+% unsolvable subjects.
+
+% Error
+load(['JLP_ERR_' label '.mat']);
+ERR.numIterAll = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERR.numIterAll(i) = size(result(i).lasso_sig,1);
+end
+
+% Error Mannual
+load(['JLP_ERRmanual_' label '.mat']);
+ERRmanual.numIterAll = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERRmanual.numIterAll(i) = size(result(i).lasso_sig,1);
+end
+
+% For hit/false
+load(['JLP_HF_' label '.mat']);
+HF.numIterAll = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    HF.numIterAll(i) = size(result(i).HFsig,1);
+end
+
+
+
+% Display reuslts
+disp(' ')
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp('Number of iterations(all subjects): ' );
+fprintf('Error\t\t')
+fprintf('%4d  ', ERR.numIterAll)
+fprintf(' = %.2f', mean(ERR.numIterAll))
+fprintf('\n')
+
+% % For comparing ERRcvglmnet vc cvglmnet
+% fprintf('ErrorManual\t')
+% fprintf('%4d  ', ERRmanual.numIterAll)
+% fprintf(' = %.2f', mean(ERRmanual.numIterAll))
+% fprintf('\n')
+
+fprintf('Hit/False\t')
+fprintf('%4d  ', HF.numIterAll)
+fprintf(' = %.2f', mean(HF.numIterAll))
+fprintf('\n')
+disp(' ')
+
+% Change unsolvable subjects to NaN
+ERR.numIter_solvableSub = ERR.numIterAll .* ERR.solvable;
+ERRmanual.numIter_solvableSub = ERRmanual.numIterAll .* ERRmanual.solvable;
+HF.numIter_solvableSub = HF.numIterAll .* HF.solvable;
+
+ERR.numIter_solvableSub(ERR.numIter_solvableSub == 0) = NaN;
+ERRmanual.numIter_solvableSub(ERRmanual.numIter_solvableSub == 0) = NaN;
+HF.numIter_solvableSub(HF.numIter_solvableSub == 0) = NaN;
+
+disp('Number of iterations(excluding unsovlable subjects): ' );
+fprintf('Error\t\t')
+fprintf('%4d  ', ERR.numIter_solvableSub)
+fprintf(' = %.2f', mean(ERR.numIterAll(ERR.solvable)))
+fprintf('\n')
+
+% fprintf('ErrorManual\t')
+% fprintf('%4d  ', ERRmanual.numIter_solvableSub)
+% fprintf(' = %.2f', mean(ERRmanual.numIterAll(ERR.solvable)))
+% fprintf('\n')
+
+fprintf('Hit/False \t')
+fprintf('%4d  ', HF.numIter_solvableSub)
+fprintf(' = %.2f', mean(HF.numIterAll(HF.solvable)))
+fprintf('\n')
+disp(' ')
+
+
+
+%% Compare accuracy
+% Unsurprisingly, iterative lasso using error obtained better accuracy. 
+
+% Error
+load(['JLP_ERR_' label '.mat']);
+ERR.accuracy = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERR.accuracy(i) = mean(result(i).finalAccuracy);
+end
+
+% Error Manual
+load(['JLP_ERRmanual_' label '.mat']);
+ERRmanual.accuracy = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERRmanual.accuracy(i) = mean(result(i).finalAccuracy);
+end
+
+% For hit/false
+load(['JLP_HF_' label '.mat']);
+HF.accuracy = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    HF.accuracy(i) = mean(result(i).finalAccuracy);
+end
+
+
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp('Final classification accuracy: ')
+fprintf('Error:\t    ')
+fprintf('%10.4f', ERR.accuracy);
+fprintf('  = % 6.4f \n', nanmean(ERR.accuracy));
+
+% fprintf('ErrorManual:')
+% fprintf('%10.4f', ERRmanual.accuracy);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.accuracy));
+
+fprintf('Hit/False:  ')
+fprintf('%10.4f', HF.accuracy);
+fprintf('  = % 6.4f \n', nanmean(HF.accuracy));
+disp(' ')
+
+
+%% Compare hit/false rate
+% Suprisingly, iterative lasso using hit / false rate does not give a
+% better hit / false rate. 
+
+
+% Error
+load(['JLP_ERR_' label '.mat']);
+ERR.hitRate= zeros(1,10);
+ERR.falseRate = zeros(1,10);
+ERR.difference = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERR.hitRate(i) = mean(result(i).final_hitRate);
+    ERR.falseRate(i) = mean(result(i).final_falseRate);
+    ERR.difference(i) = mean(result(i).final_difference);
+end
+
+% Error manual
+load(['JLP_ERRmanual_' label '.mat']);
+ERRmanual.hitRate= zeros(1,10);
+ERRmanual.falseRate = zeros(1,10);
+ERRmanual.difference = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    ERRmanual.hitRate(i) = mean(result(i).final_hitRate);
+    ERRmanual.falseRate(i) = mean(result(i).final_falseRate);
+    ERRmanual.difference(i) = mean(result(i).final_difference);
+end
+
+
+% For hit/false
+load(['JLP_HF_' label '.mat']);
+HF.hitRate= zeros(1,10);
+HF.falseRate = zeros(1,10);
+HF.difference = zeros(1,10);
+for SubNum = 1:10
+    i = SubNum;
+    HF.hitRate(i) = mean(result(i).final_hitRate);
+    HF.falseRate(i) = mean(result(i).final_falseRate);
+    HF.difference(i) = mean(result(i).final_difference);
+end
+
+
+
+
+
+% disp('REPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASHREPLACE_WITH_DASH_DASH')
+disp('Final hit rate, false alarm rate and their differences: ')
+fprintf('Error:\n')
+fprintf('Hit Rate:   ')
+fprintf('%10.4f', ERR.hitRate);
+fprintf('  = % 6.4f \n', nanmean(ERR.hitRate));
+fprintf('False Rate: ')
+fprintf('%10.4f', ERR.falseRate);
+fprintf('  = % 6.4f \n', nanmean(ERR.falseRate));
+fprintf('Difference: ')
+fprintf('%10.4f', ERR.difference);
+fprintf('  = % 6.4f \n', nanmean(ERR.difference));
+fprintf('\n')
+
+% fprintf('ErrorManual:\n')
+% fprintf('Hit Rate:   ')
+% fprintf('%10.4f', ERRmanual.hitRate);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.hitRate));
+% fprintf('False Rate: ')
+% fprintf('%10.4f', ERRmanual.falseRate);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.falseRate));
+% fprintf('Difference: ')
+% fprintf('%10.4f', ERRmanual.difference);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.difference));
+% fprintf('\n')
+
+fprintf('Hit/False:\n')
+fprintf('Hit Rate:   ')
+fprintf('%10.4f', HF.hitRate);
+fprintf('  = % 6.4f \n', nanmean(HF.hitRate));
+fprintf('False Rate: ')
+fprintf('%10.4f', HF.falseRate);
+fprintf('  = % 6.4f \n', nanmean(HF.falseRate));
+fprintf('Difference: ')
+fprintf('%10.4f', HF.difference);
+fprintf('  = % 6.4f \n', nanmean(HF.difference));
+disp(' ')
+
+
+
+
+##### SOURCE END #####
+--></body></html>

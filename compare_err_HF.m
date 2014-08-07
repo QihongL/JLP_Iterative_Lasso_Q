@@ -1,13 +1,24 @@
 %% Analysis: compare two version of iterative lasso
+% In this document, we are comparing the results of iterative lasso using
+% two different methods: error or hit/ false alarm rate. These methods have
+% direct influence on tuning lambda value and controling stopping
+% criterion, which leads to quite different outcomes.
 clear;clc;close all;
-% Pick a label
-label = 'TrueFaces';
-disp('------------------------------------------------')
+
+
+%% Pick a label
+label = 'TrueThings';
+% disp('------------------------------------------------')
 disp(['Label = ' label]);
 
 
 
-%% Compare number of solvable subject (total)
+%% Number of solvable subject 
+% Here, '1' means solvable whereas '0' means the subject was unsolvable
+% such that the first two iterations were both insignificant. Base on the
+% results, hit / false rate criterion is able to make more subjects
+% solvable.
+
 % Error
 load(['JLP_ERR_' label '.mat']);
 ERR.solvable = false(1,10);
@@ -52,15 +63,21 @@ end
 
 
 % Display number of solvable subjects
-disp('------------------------------------------------')
+% disp('------------------------------------------------')
 disp('Solvable subjects: ' );
 disp(['Error:       ' num2str(ERR.solvable) '  =  ' num2str(ERR.solvable_num)])
-disp(['ErrorManual: ' num2str(ERRmanual.solvable) '  =  ' num2str(ERRmanual.solvable_num)])
+
+% disp(['ErrorManual: ' num2str(ERRmanual.solvable) '  =  ' num2str(ERRmanual.solvable_num)])
+
 disp(['Hit/False:   ' num2str(HF.solvable) '  =  ' num2str(HF.solvable_num)])
 
 
 
-%% Compare number of voxels selected (total)
+%% Feature selection
+% Here's a comparison about the total number of voxels selected in the end.
+% It seems that by using hit/false criterion, many more voxels were
+% selected. This is also true when excluding unsolvable subjects. 
+
 
 % Error
 load(['JLP_ERR_' label '.mat']);
@@ -102,9 +119,9 @@ HF.voxels_solvableSub = HF.voxels_all(HF.solvable,:);
 [t_solvable, p_solvable] = ttest( mean(HF.voxels_solvableSub),mean(ERR.voxels_solvableSub) );
 
 % Display the total number of voxels were being selected (average accross subject)
-disp(' ')
-disp('------------------------------------------------')
-disp('Total number of voxels were being selected (including unsolvable subjects): ' );
+% disp(' ')
+% disp('------------------------------------------------')
+disp('Total number of voxels were being selected : ' );
 
 % fprintf('\t\t Error\t\t Hit/False \t T-test \t P-value \n' );
 % fprintf('All_Sub %15.2f %16.2f %12d %17.4f \n', mean(ERR.voxels_all(:)), mean(HF.voxels_all(:)), t_all, p_all );
@@ -118,14 +135,61 @@ fprintf('\t\t All Sub \t Solvable Sub\n')
 fprintf('Error:\t\t ')
 fprintf('%7.2f  %13.2f \n', mean(ERR.voxels_all(:)), mean(ERR.voxels_solvableSub(:)))
 
-fprintf('ErrorManual:\t ')
-fprintf('%7.2f  %13.2f \n', mean(ERRmanual.voxels_all(:)), mean(ERRmanual.voxels_solvableSub(:)))
+% fprintf('ErrorManual:\t ')
+% fprintf('%7.2f  %13.2f \n', mean(ERRmanual.voxels_all(:)), mean(ERRmanual.voxels_solvableSub(:)))
 
 fprintf('Hit/False:\t ')
 fprintf('%7.2f  %13.2f \n', mean(HF.voxels_all(:)), mean(HF.voxels_solvableSub(:)))
 
 
+%% Tuning lambda values
+% Here's a comparison for the lambda values used for lasso. More
+% specifically, in each iteration of lasso, it needs to tune lambda, and
+% here's the comparison for that lambda values across two criterion.
+% Overall, hit / false rate criterion is giving us a smaller lambda value.
+
+% disp('------------------------------------------------')
+for numIter = 1:2
+% numIter = 1;
+
+    % Error
+    load(['JLP_ERR_' label '.mat']);
+    ERR.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+        ERR.bestLambda(i,:) = result(subNum).lassoBestLambda(numIter,:);
+    end
+
+    % For hit/false
+    load(['JLP_HF_' label '.mat']);
+    HF.bestLambda = NaN(10,10);
+    for subNum = 1:10
+        i = subNum;
+
+        temp = zeros(1,10);
+        for j = 1:10
+            temp(j) = result(subNum).HF_tunning_lambda{numIter}(j).bestLambda;
+        end
+
+        HF.bestLambda(i,:) = temp;
+    end
+
+    t_lambda = ttest(ERR.bestLambda(:), HF.bestLambda(:));
+
+
+    
+    fprintf('Lambda value for iteration %d: \n', numIter)
+    fprintf('\t\t Error\t\tHit/False \t  \n')
+    fprintf('Lambda Value: %9.4f %14.4f  \n', mean(ERR.bestLambda(:)), mean(HF.bestLambda(:)))
+    fprintf('T test: %10d \n', t_lambda)
+end
+
+
+
 %% Compare number of iterations 
+% When considering all subjects, hit / false rate version runs more
+% iterations on average. However, this effect seems subtle when excluding
+% unsolvable subjects.
 
 % Error
 load(['JLP_ERR_' label '.mat']);
@@ -155,17 +219,19 @@ end
 
 % Display reuslts
 disp(' ')
-disp('------------------------------------------------')
+% disp('------------------------------------------------')
 disp('Number of iterations(all subjects): ' );
 fprintf('Error\t\t')
 fprintf('%4d  ', ERR.numIterAll)
 fprintf(' = %.2f', mean(ERR.numIterAll))
 fprintf('\n')
-% For comparing ERRcvglmnet vc cvglmnet
-fprintf('ErrorManual\t')
-fprintf('%4d  ', ERRmanual.numIterAll)
-fprintf(' = %.2f', mean(ERRmanual.numIterAll))
-fprintf('\n')
+
+% % For comparing ERRcvglmnet vc cvglmnet
+% fprintf('ErrorManual\t')
+% fprintf('%4d  ', ERRmanual.numIterAll)
+% fprintf(' = %.2f', mean(ERRmanual.numIterAll))
+% fprintf('\n')
+
 fprintf('Hit/False\t')
 fprintf('%4d  ', HF.numIterAll)
 fprintf(' = %.2f', mean(HF.numIterAll))
@@ -187,10 +253,10 @@ fprintf('%4d  ', ERR.numIter_solvableSub)
 fprintf(' = %.2f', mean(ERR.numIterAll(ERR.solvable)))
 fprintf('\n')
 
-fprintf('ErrorManual\t')
-fprintf('%4d  ', ERRmanual.numIter_solvableSub)
-fprintf(' = %.2f', mean(ERRmanual.numIterAll(ERR.solvable)))
-fprintf('\n')
+% fprintf('ErrorManual\t')
+% fprintf('%4d  ', ERRmanual.numIter_solvableSub)
+% fprintf(' = %.2f', mean(ERRmanual.numIterAll(ERR.solvable)))
+% fprintf('\n')
 
 fprintf('Hit/False \t')
 fprintf('%4d  ', HF.numIter_solvableSub)
@@ -201,6 +267,8 @@ disp(' ')
 
 
 %% Compare accuracy
+% Unsurprisingly, iterative lasso using error obtained better accuracy. 
+
 % Error
 load(['JLP_ERR_' label '.mat']);
 ERR.accuracy = zeros(1,10);
@@ -226,15 +294,15 @@ for SubNum = 1:10
 end
 
 
-disp('------------------------------------------------')
+% disp('------------------------------------------------')
 disp('Final classification accuracy: ')
 fprintf('Error:\t    ')
 fprintf('%10.4f', ERR.accuracy);
 fprintf('  = % 6.4f \n', nanmean(ERR.accuracy));
 
-fprintf('ErrorManual:')
-fprintf('%10.4f', ERRmanual.accuracy);
-fprintf('  = % 6.4f \n', nanmean(ERRmanual.accuracy));
+% fprintf('ErrorManual:')
+% fprintf('%10.4f', ERRmanual.accuracy);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.accuracy));
 
 fprintf('Hit/False:  ')
 fprintf('%10.4f', HF.accuracy);
@@ -243,6 +311,10 @@ disp(' ')
 
 
 %% Compare hit/false rate
+% Suprisingly, iterative lasso using hit / false rate does not give a
+% better hit / false rate. 
+
+
 % Error
 load(['JLP_ERR_' label '.mat']);
 ERR.hitRate= zeros(1,10);
@@ -284,7 +356,7 @@ end
 
 
 
-disp('------------------------------------------------')
+% disp('------------------------------------------------')
 disp('Final hit rate, false alarm rate and their differences: ')
 fprintf('Error:\n')
 fprintf('Hit Rate:   ')
@@ -298,17 +370,17 @@ fprintf('%10.4f', ERR.difference);
 fprintf('  = % 6.4f \n', nanmean(ERR.difference));
 fprintf('\n')
 
-fprintf('ErrorManual:\n')
-fprintf('Hit Rate:   ')
-fprintf('%10.4f', ERRmanual.hitRate);
-fprintf('  = % 6.4f \n', nanmean(ERRmanual.hitRate));
-fprintf('False Rate: ')
-fprintf('%10.4f', ERRmanual.falseRate);
-fprintf('  = % 6.4f \n', nanmean(ERRmanual.falseRate));
-fprintf('Difference: ')
-fprintf('%10.4f', ERRmanual.difference);
-fprintf('  = % 6.4f \n', nanmean(ERRmanual.difference));
-fprintf('\n')
+% fprintf('ErrorManual:\n')
+% fprintf('Hit Rate:   ')
+% fprintf('%10.4f', ERRmanual.hitRate);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.hitRate));
+% fprintf('False Rate: ')
+% fprintf('%10.4f', ERRmanual.falseRate);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.falseRate));
+% fprintf('Difference: ')
+% fprintf('%10.4f', ERRmanual.difference);
+% fprintf('  = % 6.4f \n', nanmean(ERRmanual.difference));
+% fprintf('\n')
 
 fprintf('Hit/False:\n')
 fprintf('Hit Rate:   ')
@@ -324,39 +396,3 @@ disp(' ')
 
 
 
-%% Compare best lambda values between cvglmnet & HFcvglmnet
-disp('------------------------------------------------')
-for numIter = 1:2
-% numIter = 1;
-
-    % Error
-    load(['JLP_ERR_' label '.mat']);
-    ERR.bestLambda = NaN(10,10);
-    for subNum = 1:10
-        i = subNum;
-        ERR.bestLambda(i,:) = result(subNum).lassoBestLambda(numIter,:);
-    end
-
-    % For hit/false
-    load(['JLP_HF_' label '.mat']);
-    HF.bestLambda = NaN(10,10);
-    for subNum = 1:10
-        i = subNum;
-
-        temp = zeros(1,10);
-        for j = 1:10
-            temp(j) = result(subNum).HF_tunning_lambda{numIter}(j).bestLambda;
-        end
-
-        HF.bestLambda(i,:) = temp;
-    end
-
-    t_lambda = ttest(ERR.bestLambda(:), HF.bestLambda(:));
-
-
-    
-    fprintf('Lambda value for iteration %d: \n', numIter)
-    fprintf('\t\t Error\t\tHit/False \t  \n')
-    fprintf('Lambda Value: %9.4f %14.4f  \n', mean(ERR.bestLambda(:)), mean(HF.bestLambda(:)))
-    fprintf('T test: %10d \n', t_lambda)
-end

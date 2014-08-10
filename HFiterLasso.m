@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -61,6 +61,10 @@ while true
 
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        
+        % Record the fit information 
+        fitStore(numIter).lasso(CV) = fitObj;
+        
         % Record the classification accuracy
         test.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj.beta, fitObj.a0) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
@@ -235,6 +239,9 @@ else
 
         % Fit glmnet 
         fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        
+        % Store the fit information 
+        fitStore(1).finalLasso(CV) = fitObj_Final;         
 
         % Calculating accuracies
         final.prediction(:,CV) = bsxfun(@plus, Xtest * fitObj_Final.beta, fitObj_Final.a0) > 0;

@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, USED ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 
@@ -34,6 +34,8 @@ used = false(k,nvoxels);
 while true
     numIter = numIter + 1;
     textprogressbar(['Iterative Lasso: ' num2str(numIter) ' -> ' ]);
+
+    
     for CV = 1:k    
         textprogressbar(CV * 10);
 
@@ -68,6 +70,10 @@ while true
         
         % Fit lasso
         fitObj = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        
+        % Record the fit information 
+        fitStore(numIter).lasso(CV) = fitObj;
+        
         % Record the classification accuracy
         test.prediction(:,CV) = (Xtest * fitObj.beta + repmat(fitObj.a0, [test.size, 1])) > 0 ;
         lasso.accuracy(numIter,CV) = mean(Ytest == test.prediction(:,CV))';
@@ -92,6 +98,9 @@ while true
         opts.lambda = fitObj_cv_ridge.lambda_min;
         % Fitting ridge regression
         fitObj_ridge = glmnet(Xtrain(:,(fitObj.beta ~= 0)'), Ytrain, 'binomial', opts);
+%         % Store the fit information
+%         fitStore(numIter).ridge(CV) = fitObj_ridge;        
+        
         % Record releveling accuracy
         ridge.prediction(:,CV) = (Xtest(:,(fitObj.beta ~= 0)') * fitObj_ridge.beta + repmat(fitObj_ridge.a0, [test.size, 1])) > 0 ;  
         ridge.accuracy(numIter,CV) = mean(Ytest == ridge.prediction(:,CV))';
@@ -235,6 +244,9 @@ else
 
         % Fit glmnet 
         fitObj_Final = glmnet(Xtrain, Ytrain, 'binomial', opts);
+        
+        % Store the fit information 
+        fitStore(1).finalLasso(CV) = fitObj_Final;        
 
         % Calculating accuracies
         final.prediction(:,CV) = (Xtest * fitObj_Final.beta + repmat(fitObj_Final.a0, [test.size, 1])) > 0 ;  

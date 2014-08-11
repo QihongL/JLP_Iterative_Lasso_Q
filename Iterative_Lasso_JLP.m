@@ -49,8 +49,8 @@ for i = 1 : 3
 
 
         %% Choose the version of Iterative Lasso
-%         [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
-        [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso(X,Y,CVBLOCKS,2);
+        [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
+%         [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
         %% Get results, and save them
@@ -71,7 +71,7 @@ for i = 1 : 3
         result(subNum).fitStore = fitStore;
         
 %         % specific to cvglmnet
-%         result(subNum).lassoBestLambda = lasso.bestLambda;
+        result(subNum).lassoBestLambda = lasso.bestLambda;
         
 %         specific to HFcvglmnet
         result(subNum).HFsig = hit.HFsig;    

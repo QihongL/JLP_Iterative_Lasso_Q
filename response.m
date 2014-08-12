@@ -1,71 +1,62 @@
-%% Winer take all classifer
-% Combining three classifers.
-clear; clc;
+function [ responseMatrix ] = response( subNum, cv )
+%Compute the response matrix for three classifers, on the test set
+% This function outputs n * m matrix
+% n = test size
+% m = number of classifer 
+%
+% It needs the subject number of cv number 
 
 
-%% First, Find subjects that are solvable for all labels 
+
+% Only HF has solvable subjects anyway... let me hard code it 
 type = 'HF';
-
-solvableSub = find(solvAll(type) == 1);
-numSub = size(solvableSub,2);
-
-
 
 %% Start computing 
 
 % Get a solvable subject
-subNum = solvableSub(1);
-cv = 1;
 [X,metadata] = loadMRIData('jlp',subNum);
 
+% Get the test set 
+holdout = metadata(subNum).CVBLOCKS(:,cv);
+Xtest = X(holdout,:);
 
 
+
+%% For every label, get response for the test set 
 
 % For FACES
 label = 'TrueFaces';
 % Load the result
 load(['JLP_' type '_' label '.mat']) 
-
 % Get beta vector and intercept 
 [beta_f, intercept_f] = getBeta(subNum, cv, label);
 % Calculate the 'response'
-response_f = X * beta_f + intercept_f;
+response_f = Xtest * beta_f + intercept_f;
 
 
 % For PLACES
 label = 'TruePlaces';
 % Load the data
 load(['JLP_' type '_' label '.mat']) 
-
 % Get beta vector and intercept 
 [beta_p, intercept_p] = getBeta(subNum, cv, label);
 % Calculate the 'response'
-response_p = X * beta_p + intercept_p;
+response_p = Xtest * beta_p + intercept_p;
 
 
 % For Objects
 label = 'TrueThings';
 % Load the data
 load(['JLP_' type '_' label '.mat']) 
-
 % Get beta vector and intercept 
 [beta_t, intercept_t] = getBeta(subNum, cv, label);
 % Calculate the 'response'
-response_t = X * beta_t + intercept_t;
-
+response_t = Xtest * beta_t + intercept_t;
 
 
 % Concatenate all responses
 responseMatrix = [response_f, response_p, response_t];
 
 
-% Calculate hit and false alarm 
-[~,maxCol] = max(responseMatrix,[],2);
-prediction = maxCol == 1;
-Y = metadata(subNum).TrueFaces;
-hit = sum(prediction & Y) / sum(Y);
-false = sum(prediction & ~Y) / sum(~Y);
-
-
-
+end
 

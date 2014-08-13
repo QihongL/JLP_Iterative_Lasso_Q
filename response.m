@@ -29,7 +29,7 @@ label = 'TrueFaces';
 % Load the result
 load(['JLP_' type '_' label '.mat']) 
 % Get beta vector and intercept 
-[beta_f, intercept_f] = getBeta(subNum, cv, label);
+[beta_f, intercept_f] = getBeta_solv(subNum, cv, label);
 % Calculate the 'response'
 response_f = Xtest * beta_f + intercept_f;
 
@@ -39,7 +39,7 @@ label = 'TruePlaces';
 % Load the data
 load(['JLP_' type '_' label '.mat']) 
 % Get beta vector and intercept 
-[beta_p, intercept_p] = getBeta(subNum, cv, label);
+[beta_p, intercept_p] = getBeta_solv(subNum, cv, label);
 % Calculate the 'response'
 response_p = Xtest * beta_p + intercept_p;
 
@@ -49,7 +49,7 @@ label = 'TrueThings';
 % Load the data
 load(['JLP_' type '_' label '.mat']) 
 % Get beta vector and intercept 
-[beta_t, intercept_t] = getBeta(subNum, cv, label);
+[beta_t, intercept_t] = getBeta_solv(subNum, cv, label);
 % Calculate the 'response'
 response_t = Xtest * beta_t + intercept_t;
 

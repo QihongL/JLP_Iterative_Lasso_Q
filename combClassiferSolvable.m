@@ -1,4 +1,4 @@
-%% Winer take all classifer
+%% Winer take all classifer for solvable subjects
 % Combining three classifers.
 clear; clc;
 

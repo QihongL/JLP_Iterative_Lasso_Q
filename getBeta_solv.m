@@ -1,5 +1,5 @@
-%% Get beta vectors
-function [beta, intercept] = getBeta( subNum, cv, label ) 
+%% Get beta vectors for solvable subjects
+function [beta, intercept] = getBeta_solv( subNum, cv, label ) 
 % This is a helper function for the 'winner take all' classifer
 % It is going to get the beta vectors for 3 classifers 
     
@@ -14,9 +14,9 @@ function [beta, intercept] = getBeta( subNum, cv, label )
     
     % cv & subNum should be smaller than 10
     if cv > 10
-        disp('WARNING: cv cannot be bigger than 10, since there are only 10 cv blocks.')
+        error('WARNING: cv cannot be bigger than 10, since there are only 10 cv blocks.')
     else if subNum > 10
-            disp('WARNING: subNum cannot be bigger than 10, since there are only 10 subjects.')
+            error('WARNING: subNum cannot be bigger than 10, since there are only 10 subjects.')
         end
     end
     

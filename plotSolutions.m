@@ -1,16 +1,15 @@
 %% Plot the solutions for iterative lasso
-clear; 
+function plotSolutions(subNum, type, label)
+
 
 %% prep
+% % Set some parameters
+% type = 'ERR';
+% label = 'TrueFaces';
+% subNum = 1;
 
-% Set some parameters
-type = 'ERR';
-label = 'TrueFaces';
-subNum = 10;
-
-% load the data
+% load the results
 load(['JLP_' type '_' label '.mat'])
-
 
 % Determine which iteration to pick
 STOPPING_RULE = 1;
@@ -18,9 +17,15 @@ iterNum = size(result(subNum).used,2) - STOPPING_RULE;
 
 
 
-
 %% Get voxels 
+
+% Set the lower boundary for inclusion 
+boundary = 0;
+% Raw solution
 solution = sum(result(subNum).used{iterNum})';
+% Select subset 
+logicalFactor = solution >= boundary;
+solution = solution .* logicalFactor;
 
 
 %% plot
@@ -36,6 +41,9 @@ load(temp, 'IJK');
 
 % write to nifti file
 temp = sprintf(['sub%.2d_' type '_' label '.nii'], subNum);
+
 writeNIFTI(temp,[64,64,30], IJK , solution, data.hdr, 'fix');
 
+
+end
 

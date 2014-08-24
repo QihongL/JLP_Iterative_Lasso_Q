@@ -19,8 +19,6 @@ Y = metadata(subNum).TrueFaces;
 % [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
-
-
 % %% Run all subjects with all labels, and save the results 
 % 
 % loop over 3 labels

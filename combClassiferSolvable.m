@@ -30,7 +30,7 @@ textprogressbar(['Loop over 10 cv blocks...' ]);
         % Xtest = X(holdout,:);
 
         % Get response matrix
-        responseMatrix = response(subNum, cv);
+        responseMatrix = response(subNum, cv, 'HF');
 
 
     

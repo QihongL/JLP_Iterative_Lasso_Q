@@ -1,4 +1,4 @@
-function [ responseMatrix ] = response( subNum, cv )
+function [ responseMatrix ] = response( subNum, cv, type )
 %Compute the response matrix for three classifers, on the test set
 % This function outputs n * m matrix
 % n = test size
@@ -6,10 +6,6 @@ function [ responseMatrix ] = response( subNum, cv )
 %
 % It needs the subject number of cv number 
 
-
-
-% Only HF has solvable subjects anyway... let me hard code it 
-type = 'HF';
 
 %% Start computing 
 

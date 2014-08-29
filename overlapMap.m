@@ -2,7 +2,7 @@
 % Check voxel overlap across subjects, finding functional anatomical
 % consistency
 
-function [heatVec, catCod_u] = overlapMap(lowerBound, label)
+function [heatVec, coordinates] = overlapMap(lowerBound, label)
 
 %% Set some parameters
 
@@ -44,14 +44,14 @@ for subNum = 1:nSub
 end
 catCod = temp;
 % Eliminate redundant coordinates
-catCod_u = unique(catCod, 'rows');
+coordinates = unique(catCod, 'rows');
 
 
 %% Find overlapping voxels
 
-heatVec = zeros(size(catCod_u,1), 1);
+heatVec = zeros(size(coordinates,1), 1);
 for i = 1 : size(catCod,1)
-    [~, idx] = ismember(catCod(i,:), catCod_u, 'rows');
+    [~, idx] = ismember(catCod(i,:), coordinates, 'rows');
     heatVec(idx) = heatVec(idx) + 1;
 end
 

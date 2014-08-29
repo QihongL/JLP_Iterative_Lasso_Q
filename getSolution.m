@@ -16,7 +16,7 @@ iterNum = size(result(subNum).used,2) - STOPPING_RULE;
 solution = sum(result(subNum).used{iterNum})';
 
 % Identify voxels that were being selected more than N times
-logicalFactor = solution > lowerBound;
+logicalFactor = solution >= lowerBound;
 solution = solution .* logicalFactor;
 
 end

@@ -1,8 +1,8 @@
 
 type = string-attribute
 name = HISTORY_NOTE
-count = 1463
-'[dglen@gollum.local: Wed Aug  1 13:46:01 2007] 3dcopy /Users/dglen/spm5/toolbox/Anatomy/colin27T1_seg.hdr ./MNIa_N27+tlrc\n[dglen@gollum.local: Wed Aug  1 13:46:01 2007] 3drefit -sublabel 0 colin27T1_seg MNIa_N27+tlrc\n[dglen@gollum.local: Wed Aug  1 13:46:02 2007] 3dcopy ./MNIa_N27+tlrc MNI_N27\n[dglen@gollum.local: Wed Aug  1 13:46:02 2007] 3drefit -dxorigin 0.000000 -dyorigin -4.000000 -dzorigin -5.000000 MNI_N27+tlrc\n[dglen@gollum.local: Wed Aug  1 13:46:02 2007] @Shift_Volume -MNI_Anat_to_MNI -dset MNIa_N27+tlrc -prefix MNI_N27\n[dglen@gollum.local: Wed Aug  1 13:46:03 2007] adwarp.c -resam Cu -force -apar /Users/dglen/afni/src/ZILLES_N27_ATLASES/N27/TT_N27+tlrc.HEAD -dpar MNI_N27+tlrc -prefix TT_N27\n[dglen@ndsl-lfmi-kocha.nih.gov: Thu Sep  9 14:00:34 2010] 3drefit -space TLRC /Users/dglen/abin/TT_EPI+tlrc.HEAD /Users/dglen/abin/TT_N27+tlrc.HEAD /Users/dglen/abin/TT_N27_CA_EZ_MPM+tlrc.HEAD /Users/dglen/abin/TT_N27_CA_EZ_PMaps+tlrc.HEAD /Users/dglen/abin/TT_N27_EZ_LR+tlrc.HEAD /Users/dglen/abin/TT_N27_EZ_ML+tlrc.HEAD /Users/dglen/abin/TT_avg152T1+tlrc.HEAD /Users/dglen/abin/TT_avg152T2+tlrc.HEAD /Users/dglen/abin/TT_icbm452+tlrc.HEAD /Users/dglen/abin/TTatlas+tlrc.HEAD\n[dglen@gollum.nimh.nih.gov: Fri May 11 13:23:44 2012] 3drefit -space TT_N27 /Volumes/elrond/pub/dist/atlases/current/TT_N27+tlrc.\n[lcnl@dyn-72-33-244-154.uwnet.wisc.edu: Wed Aug 27 14:23:51 2014] 3dresample -dxyz 3 3 3 -prefix TT_N27_333 -inset ../TT_N27+tlrc.nii.gz~
+count = 192
+'[lcnl@dyn-72-33-244-154.uwnet.wisc.edu: Mon Sep  8 18:12:47 2014] 3dUndump -master ./TT_N27_333+tlrc. -prefix JLP_Iterative_Lasso_Q/TESTING -datum float -xyz JLP_Iterative_Lasso_Q/TESTING.txt~
 
 type = string-attribute
 name = TYPESTRING
@@ -12,12 +12,12 @@ count = 15
 type = string-attribute
 name = IDCODE_STRING
 count = 27
-'XYZ_v4bwLCdlcbt7NaKz3qieWg~
+'XYZ_TmbFg6vU4WuSNFD4IntLyQ~
 
 type = string-attribute
 name = IDCODE_DATE
 count = 25
-'Wed Aug 27 14:23:51 2014~
+'Mon Sep  8 18:12:47 2014~
 
 type = integer-attribute
 name = SCENE_DATA
@@ -72,7 +72,7 @@ count = 12
 type  = float-attribute
 name  = BRICK_STATS
 count = 2
-              0            205
+              0              2
 
 type = integer-attribute
 name = DATASET_RANK
@@ -88,7 +88,7 @@ count = 5
 type = integer-attribute
 name = BRICK_TYPES
 count = 1
- 0
+ 3
 
 type  = float-attribute
 name  = BRICK_FLOAT_FACS

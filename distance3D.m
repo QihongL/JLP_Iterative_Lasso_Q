@@ -1,6 +1,7 @@
 %% Calculate amount of voxels within certain radius
 
-function [proportionAll, proportionMean, subjectOverlapHeatMap] = distance3D(lowerBound, r, label)
+function [proportionAll, proportionMean, subjectOverlapHeatMap, selectedCod]...
+    = distance3D(lowerBound, r, label)
 % proportionAll: number of overlapping voxel across 10 subjects / total
 % voxel in each subhect's solution
 % proportionMean 

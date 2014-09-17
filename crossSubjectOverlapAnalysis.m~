@@ -1,0 +1,28 @@
+%% Write out solution for each subject
+% Related to txt2nii.sh, blurFMRI.sh, sumFMRI.sh
+
+% Set label 
+label = 'TrueFaces';
+
+% Set subject number 
+subNum = 1;
+
+% Get a single subject heat map 
+SSheatmap = singleSubHeatmap(subNum, label);
+
+
+
+%% filtering out voxels below certain consistency 
+
+% Set CV consistency 
+consistency = 9; 
+
+% Get voxels that above CV consistency 
+filteredSSheatmap = SSheatmap( SSheatmap(:,4) >= consistency, : );
+
+% Write to text
+fileName = fprintf('SSheatmap_subject%.2d_%.2d_%s', subNum, consistency, label);
+
+%heatmap2txt('Testing', filteredSSheatmap);
+
+

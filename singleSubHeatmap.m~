@@ -1,0 +1,28 @@
+%% Get solution for a single subject
+% The solution includes
+% 1. the coordinates
+% 2. the heat map -> cross validation consistency 
+
+
+%% prep 
+
+% load the data
+load('jlp_metadata.mat')
+
+% set the parameters 
+subNum = 1;
+type = 'HF'; % only looking at HF solution 
+label = 'TrueFaces';
+lowerBound = 0;
+
+
+%% Start computing
+
+% Get adjusted xyz coordinates and min distance 
+[xyz_adj] = defineCommonGrid({metadata.xyz_tlrc});
+
+% Get consistency for each voxel 
+solution = getSolution(subNum,type,label,lowerBound);
+
+% Get the xyz_adj for each subject
+xyzxyz_adj{subNum}

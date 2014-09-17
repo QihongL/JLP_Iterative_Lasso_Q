@@ -5,11 +5,7 @@
 function [heatVec, coordinates] = overlapMap(lowerBound, label)
 
 %% Set some parameters
-
-% Pick the lower bound (times selected across 10 cv blocks)
-% lowerBound = 2;
-% label = 'TrueFaces';
-
+% We are only looking at HF data, since it has richer solution
 type = 'HF';
 % load the tlrc coordinates
 load('jlp_metadata.mat')
@@ -56,10 +52,6 @@ for i = 1 : size(catCod,1)
 end
 
 
-% %% check some numbers 
-% size(catCod,1)
-% size(catCod_u,1)
-% sum(heatVec)
-% size(heatVec,1)
-% max(heatVec)
+
+
 end

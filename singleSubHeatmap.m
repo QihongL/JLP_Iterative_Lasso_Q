@@ -4,16 +4,12 @@
 % 2. the heat map -> cross validation consistency 
 
 function [heatmap] = singleSubHeatmap(subNum, label)
-
-
 %% prep 
 
 % load the data
 load('jlp_metadata.mat')
 
 % set the parameters 
-%subNum = 1;
-%label = 'TrueFaces';
 type = 'HF'; % only looking at HF solution 
 lowerBound = 0; % we want all voxels
 

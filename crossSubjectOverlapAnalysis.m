@@ -47,30 +47,46 @@ for subNum = 2:10
     AllCoordinates = vertcat(AllCoordinates, filteredSSheatmap{subNum}(:,1:3));
 end
 
+% TRANSFORMATION - all
 % Round each value to the nearest multiple of 3.
 AllCoordinatesTo3 = roundto(AllCoordinates,3);
-
 % Find the min value in each column
 columnMin = min(AllCoordinatesTo3);
-
 % Subtract those min values from each column in the matrix
 indexCoordinates = bsxfun(@minus, AllCoordinatesTo3, columnMin) / 3;
-
 % Find the max value in each column (the dimensions of this space) 
 indexDim = max(indexCoordinates);
 
 % Get 1D index for all voxel
 indexAll = collapse_grid(indexDim,indexCoordinates);
 
-% get indices for each individual subject
+% TRANSFORMATION - individual
+% Get   1. indices for each individual subject
+%       2. 1D index to CV consistency correspondence
 indexSingleSub = cell(10,1);
+index_coordinates_consistency = cell(10,1);
 for subNum = 1:10
     % Apply the same transformation for indivisual subject
     temp = roundto(filteredSSheatmap{subNum}(:,1:3),3);
     tempIndexCod = bsxfun(@minus, temp, columnMin) / 3;
     % Get the individual index 
     indexSingleSub{subNum} = collapse_grid(indexDim,tempIndexCod);
+    % Establish individual 1D index to CV consistency correspondence
+    index_coordinates_consistency{subNum} = horzcat(indexSingleSub{subNum}, tempIndexCod, filteredSSheatmap{subNum}(:,1:4));
 end
+
+%% Constuct the full overlap matrix
+% row: all possible voxel
+% 1st column: 1D indices
+% 2 - 4th columns: coordinates in index spaces
+% 5 - 7th columns: coordinates in defineCommonGird spaces
+% 8 - 11th columns: coordinates in tlrc spaces
+% 8 - 18th columns: CV consistency matrix 
+% 19th column: overlap heat map
+% 20th existence boolean - if the voxel ever exited in any subject
+
+% initialize the data matrix 
+overlapMatrix = nan(max(indexAll),20);
 
 
 

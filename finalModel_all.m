@@ -6,6 +6,8 @@
 clear; 
 
 k = 10;
+
+% Only exclude the last iteration
 STOPPING_RULE = 1;
 
 

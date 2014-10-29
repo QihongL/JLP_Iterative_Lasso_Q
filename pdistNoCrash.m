@@ -14,14 +14,16 @@ numCoord = size(coordinates,1);
 % loop over each coordinate
 distance = NaN(1,numCoord);
 distanceMatrix = NaN(numCoord);
+textprogressbar('Computing ');
 for i = 1 : numCoord
+    textprogressbar(i);
     for j = 1 : numCoord
         % Compute coordinate-wise Euclidian distance
         distance(j) = sqrt(sum((coordinates(i,:) - coordinates(j,:)).^2));
     end
     distanceMatrix (i,:) = distance;
 end 
-
+textprogressbar('end');
 
 %     % test if the result is correct
 %     D = squareform(pdist(coordinates));

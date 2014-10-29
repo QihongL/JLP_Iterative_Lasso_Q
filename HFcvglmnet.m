@@ -8,8 +8,8 @@
 function [ HF ] = HFcvglmnet( Xtrain, Ytrain, K, fold_id )
 
     % Resource perallocation 
-	HF.hitrate = zeros(K,100);
-    HF.falserate = zeros(K,100);
+	%HF.hitrate = zeros(K,100);
+    %HF.falserate = zeros(K,100);
     
     % Use lasso (alpha = 1)
     opts = glmnetSet();

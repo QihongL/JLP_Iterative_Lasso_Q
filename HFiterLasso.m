@@ -179,11 +179,27 @@ while true
             disp(' ')
             break
         end
+        
 
     else
         STOPPING_COUNTER = 0;
     end 
+    
+    
+    
+    % check if run out of voxel
+    if sum((sum(USED{numIter},2) == nvoxels)) >= 1
+        disp(' ')
+        disp('* Run out of voxels!')
+        disp('====================================================================')
+        disp(' ')
+        break
+    end
 
+    
+    
+    
+    
 end
 
 

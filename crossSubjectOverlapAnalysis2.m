@@ -8,7 +8,7 @@ clear;clc;
 % Set label 
 label = 'TrueFaces';
 % Set a radius
-radius = 9;
+radius = 3;
 % Decided if want to write the heatmap to .txt file
 writeToTextFile = false;
 
@@ -107,26 +107,31 @@ end
 X_nonzero = X(X(:,5) ~= 0, 1:5 );
 SOLUTION_nonzero = zeros(size(X_nonzero,1),1);
 
+% Compute distance matrix 
+disp('Compute the distance matrix...');
+D = pdistNoCrash(X_nonzero(:,2:4));
+
 %% Overlap analysis 
 disp('Finding overlap...');
 
 % loop over 10 threshold for cv consistency
 for CVConsistency = 0:9
 
-    % find voxel above certian CV consistency
+    % find indices for voxels above certian CV consistency
     voxel_above_threshold = X(:,5) > CVConsistency;
     X_CVConsistency = X(voxel_above_threshold,1:5);
-    % Compute distance matrix 
-    D = pdistNoCrash(X_nonzero(:,2:4));
     
     % Get voxels blocks for each subject 
     % voxelBlock = bsxfun(@eq, X(:,1), X(:,1)');
     voxelBlock_nonzero = bsxfun(@eq, X_nonzero(:,1), X_nonzero(:,1)');
     D(voxelBlock_nonzero) = Inf;
 
-    % Overlap voxel = voxel within certian radius...
-    ovox = any(tril(D) < radius);
+    % set the upper triangle to infinity
+    D(tril(true(size(D))) == 0) = Inf;
+    
+    % Overlap voxel = voxel within certian radius...    
+    overlapVoxel = any(tril(D) < radius);
     
     % write to solution
-    SOLUTION(voxel_above_threshold) = ovox * CVConsistency;
+    SOLUTION(voxel_above_threshold) = overlapVoxel * CVConsistency;
 end

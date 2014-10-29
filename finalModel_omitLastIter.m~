@@ -1,0 +1,44 @@
+%% build final models that only omits the last lasso iteration 
+% needed for face - noFace - whole brain contrast
+
+clear;
+
+%% Preparation
+% constant
+NUM_OMIT = 1;
+LABEL = 'TrueFaces';
+
+% Load the results
+wholeBrain = load('JLP_HF_TrueFaces.mat');
+faceOnly = load('JLP_HF_onlyFace_TrueFaces.mat');
+noFace = load('JLP_HF_noFace_TrueFaces.mat');
+% 
+% data = {WholeBrain.result, faceOnly.result, noFace.result}
+
+subNum = 1;
+
+% load the data 
+[X,metadata] = loadMRIData('jlp',subNum);
+% Get CV inidices for testing and training set
+CVBLOCKS = metadata(subNum).CVBLOCKS;
+% Get the metadata for the row labels: 
+Y = metadata(subNum).(LABEL);
+
+
+cv = 1;
+
+% this is specific to wholeBrain 
+targetIter = size(wholeBrain.result(subNum).used, 2) - NUM_OMIT; 
+
+temp = wholeBrain.result(subNum).used{targetIter};
+
+voxelUsed = wholeBrain.result(subNum).used{targetIter}(cv,:);
+
+if sum(voxelUsed) == 0 
+    fprintf('No voxel in the final ')
+    
+
+% 
+% 
+% Xfinal = X(:,voxelUsed);
+% 

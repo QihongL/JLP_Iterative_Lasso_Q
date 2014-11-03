@@ -2,7 +2,7 @@
 clear; 
 
 % CONSTANT
-VERY_SMALL_NUM = 0.0000000001;
+VERY_SMALL_NUM = 1e-5;
 
 %% prep 
 % load data 

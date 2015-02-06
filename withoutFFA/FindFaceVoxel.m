@@ -2,21 +2,26 @@
 % @param - subNum: the subject ID
 % @return - a logical vector that indicates if a voxel belongs to FFA
 
-function faceVoxelIndex = FindFaceVoxel(subNum)
+function [faceVoxelIndex] = FindFaceVoxel(subNum)
+
+
 
 % load the metadata 
 % NEW MASKS
 METADATA_PATH = '/Users/lcnl/Documents/MATLAB/JLP/data/selectedFunctionalData';
 filename = sprintf('jlp%.2d_hc_X_conds.mat',subNum);
+load('handConsMasks.mat')
+xyz1 = cortices{subNum}.xyz;
 
 % OLD MASKS
 % METADATA_PATH = '/Users/lcnl/Documents/MATLAB/JLP/data';
 % filename = sprintf('jlp_metadata.mat');
+% load(fullfile(METADATA_PATH,filename));
+% xyz1 = metadata(subNum).xyz_tlrc;
 
-load(fullfile(METADATA_PATH,filename));
+% load the the coordinates for all face voxels 
+
 load('FaceCoordinates.mat')
-
-xyz1 = metadata(subNum).xyz_tlrc;
 
 %% Round to 3x3x3
 
@@ -39,8 +44,9 @@ indFace = sub2ind(commonDims,faceIJKSplat{:});
 
 % find intersection 
 faceVoxelIndex = ismember(ind, indFace);
-fprintf('Subject %d has %d voxels in the face system\n', ...
-    subNum, sum(ismember(ind, indFace)));
+numFaceVoxels = sum(ismember(ind, indFace));
+fprintf('Subject %d \t number of voxels %d \n', ...
+    subNum, numFaceVoxels);
 
 
 

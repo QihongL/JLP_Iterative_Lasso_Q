@@ -19,8 +19,11 @@ end
 
 %% Find intersection with the face system 
 faceVoxelInd = cell(1,10);
+numFaceVoxels = NaN(1,10);
 for subNum = 1:10
     faceVoxelInd{subNum} = FindFaceVoxel(subNum);
+    numFaceVoxels(subNum) = sum(faceVoxelInd{subNum});
 end
 
+fprintf('\n- Average number of "face voxels": %.2f\n', mean(numFaceVoxels))
 

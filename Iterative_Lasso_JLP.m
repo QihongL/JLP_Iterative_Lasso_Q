@@ -5,7 +5,7 @@ clear; close all; clc;
 %% Run iterative lasso on a single subject
 
 % Specify the subject number
-subNum = 1;
+subNum = 2;
 
 
 % Load the data

@@ -20,7 +20,7 @@ clear wholeBrain; clear faceOnly; clear noFace;
 
 %% Getting voxels for the final model 
 
-i = 3;  % controlling the type (face, noface, wholebrain )
+for i = 1:3;  % controlling the type (face, noface, wholebrain )
 
 
 % number of subjects might not be 10, since 1 subject was completely 
@@ -107,7 +107,7 @@ for subNum = 1: numberOfSubjects;
             % Compute accuracy / hit rate / false alarm rate 
             finalModels.accuracy(subNum, cv) = mean(Ytest == prediction);
             finalModels.hitRate(subNum, cv) = sum(prediction & Ytest) / sum(Ytest);
-            finalModels.falseRate(subNum, cv) = sum(~prediction & Ytest) / sum(~Ytest);
+            finalModels.falseRate(subNum, cv) = sum(prediction & ~Ytest) / sum(~Ytest);
 
         end
     end
@@ -119,3 +119,5 @@ finalModels.(RESULTS_NAME{i}) = fitTemp;
 
 % save the results
 save(['finalModels_' RESULTS_NAME{i} '.mat'], 'finalModels');
+
+end

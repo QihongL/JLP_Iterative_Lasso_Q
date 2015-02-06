@@ -1,0 +1,2 @@
+clear;
+load('handConsMasks.mat')

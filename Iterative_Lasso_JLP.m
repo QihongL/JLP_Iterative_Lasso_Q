@@ -7,21 +7,22 @@ clear; close all; clc;
 % Specify the subject number
 subNum = 1;
 
+
 % Load the data
-[X,metadata] = loadMRIData('jlp',subNum);
+[X,metadata] = loadMRIData('jlp_newmasks',subNum);
 % Get CV inidices for testing and training set
 CVBLOCKS = metadata(subNum).CVBLOCKS;
-% Get the metadata for the row labels: 
+% Get the metadata for the row labels:
 Y = metadata(subNum).TrueFaces;
 
 % Run Iterative Lasso
-[ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
-% [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
+% [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
+[ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2);
 
 
 % %% Run all subjects with all labels, and save the results 
 % 
-% loop over 3 labels
+% % loop over 3 labels
 % for i = 1 : 3
 % 
 %     if i == 1
@@ -39,14 +40,14 @@ Y = metadata(subNum).TrueFaces;
 %         disp(['Calculating: ' label ' | Subject: ' num2str(subNum) '...' ])
 % 
 %         %% prep
-%         [X,metadata] = loadMRIData('jlp',subNum);
+%         [X,metadata] = loadMRIData('jlp_newmasks',subNum);
 %         CVBLOCKS = metadata(subNum).CVBLOCKS;
 %         Y = metadata(subNum).(label);
 % 
 % 
 %         %% Choose the version of Iterative Lasso
-%         [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
-% %         [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso(X,Y,CVBLOCKS,2);
+% %         [ hit, final, lasso, ridge, USED, fitStore ] = IterLasso(X,Y,CVBLOCKS,2);
+%         [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso(X,Y,CVBLOCKS,2);
 % 
 % 
 %         %% Get results, and save them
@@ -67,7 +68,7 @@ Y = metadata(subNum).TrueFaces;
 %         result(subNum).fitStore = fitStore;
 %         
 % %         % specific to cvglmnet
-%         result(subNum).lassoBestLambda = lasso.bestLambda;
+%         %result(subNum).lassoBestLambda = lasso.bestLambda;
 %         
 % %         specific to HFcvglmnet
 %         result(subNum).HFsig = hit.HFsig;    
@@ -76,7 +77,7 @@ Y = metadata(subNum).TrueFaces;
 % 
 %     end
 %     disp('Save the results!')
-%     save(['JLP_ERR_' label '.mat'], 'result');
+%     save(['JLP_HF_' label '_newMasks.mat'], 'result');
 % end
 % disp('Done for all subjects and all labels!')
 % 

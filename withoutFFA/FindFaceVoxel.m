@@ -5,10 +5,16 @@
 function faceVoxelIndex = FindFaceVoxel(subNum)
 
 % load the metadata 
-METADATA_PATH = '../../data';
-load(fullfile(METADATA_PATH,'jlp_metadata.mat'));
+% NEW MASKS
+METADATA_PATH = '/Users/lcnl/Documents/MATLAB/JLP/data/selectedFunctionalData';
+filename = sprintf('jlp%.2d_hc_X_conds.mat',subNum);
+
+% OLD MASKS
+% METADATA_PATH = '/Users/lcnl/Documents/MATLAB/JLP/data';
+% filename = sprintf('jlp_metadata.mat');
+
+load(fullfile(METADATA_PATH,filename));
 load('FaceCoordinates.mat')
-% subNum = 1;
 
 xyz1 = metadata(subNum).xyz_tlrc;
 

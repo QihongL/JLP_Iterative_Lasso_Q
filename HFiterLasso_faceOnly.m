@@ -34,8 +34,6 @@ voxelRunOut = false;
  
 while true
     
-
-    
     
     numIter = numIter + 1;
     textprogressbar(['Iterative Lasso: ' num2str(numIter) ' -> ' ]);

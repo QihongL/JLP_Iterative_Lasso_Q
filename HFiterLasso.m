@@ -1,4 +1,4 @@
-function [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE )
+function [ hit, final, lasso, ridge, USED, HF, fitStore ] = HFiterLasso( X, Y, CVBLOCKS, STOPPING_RULE, faceVoxInd )
 %% Iterative Lasso
 % This function preform iterative Lasso
 % It needs the following inputs: 

@@ -1,0 +1,60 @@
+getwd
+help q
+pnorm
+random
+rand
+pnorm(0.99)
+qnorm(0)
+qnorm(1)
+qnorm(.05)
+pnorm(0)
+pnorm(1)
+pnorm(1, lower.tail = F)
+a = rnorm (100)
+b = rnorm (100)
+ttest(a,b)
+t.test(a,b)
+rnorm(100)
+a = rnorm(100)
+b = rnorm(100,1)
+t.test(a,b)
+plot(a)
+a = rnorm(100)
+b = a + 1
+a = rnorm(100)
+b = a + rnorm(100)
+plot(a,b)
+library(lme4)
+install.packages('lme4')
+setwd('/Users/lcnl/Documents/MATLAB/JLP/JLP_Iterative_Lasso_Q#
+')
+setwd('/Users/lcnl/Documents/MATLAB/JLP/JLP_Iterative_Lasso_Q')
+library(lme4)
+d <- read.csv('faceOnly_dprime.csv', header=F)
+d
+install.packages('reshape2')
+library(reshape2)
+d <- cbind(seq(1,8),d)
+names(d)[1] <- 'subject'
+?melt
+d <- melt(d,id.vars="subject",variable.name="cv",value.name="dprime")
+d
+m <- lmer(dprime~1+(1|cv), data=d)
+summary(m)
+m <- lmer(dprime~1+(1|subject), data=d)
+summary(m)
+d <- read.csv('wholebrain_dprime.csv', header=F)
+d <- cbind(seq(1,8),d)
+d <- cbind(seq(1,8),d)
+d <- read.csv('wholebrain_dprime.csv', header=F)
+d <- cbind(seq(1,8),d)
+names(d)[1] <- 'subject'
+d <- melt(d,id.vars="subject",variable.name="cv",value.name="dprime")
+m <- lmer(dprime~1+(1|subject), data=d)
+summary(m)
+d <- read.csv('noFace_dprime.csv', header=F)
+d <- cbind(seq(1,8),d)
+names(d)[1] <- 'subject'
+d <- melt(d,id.vars="subject",variable.name="cv",value.name="dprime")
+m <- lmer(dprime~1+(1|subject), data=d)
+summary(m)

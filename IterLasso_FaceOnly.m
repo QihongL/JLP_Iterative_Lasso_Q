@@ -1,8 +1,9 @@
 % Only exclude the last insig.iteration
 clear; clc; 
 
-subNum = 10; 
-load('withoutFFA/SubjFaceVoxInd.mat')
+subNum = 1; 
+% load('withoutFFA/SubjFaceVoxInd.mat')
+load('withoutFFA/faceVoxInd_handCons.mat')
 
 % Load the data
 [X,metadata] = loadMRIData('jlp',subNum);
@@ -13,9 +14,10 @@ CVBLOCKS = metadata(subNum).CVBLOCKS;
 Y = metadata(subNum).TrueFaces;
 
 % reduce voxels in the face system
-Xsubset = X(:, faceVoxelInd{subNum});
+Xsubset = X(:, faceVoxelInd_handCons{subNum});
 
 % Run Iterative Lasso
-[ hit, final, lasso, ridge, USED, HF ] = HFiterLasso_faceOnly(Xsubset,Y,CVBLOCKS,2);
+% [ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2, faceVoxelInd{subNum});
+[ hit, final, lasso, ridge, USED, HF ] = HFiterLasso(X,Y,CVBLOCKS,2, faceVoxelIndex_handCons{subNum});
 
 

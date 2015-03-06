@@ -1,6 +1,6 @@
 clear; clc 
 
-
+% load the data and get the performance results 
 load('JLP_HF_TrueFaces.mat')
 old.face = performanceAnalysis(result);
 load('JLP_HF_TruePlaces.mat')
@@ -16,8 +16,7 @@ load('JLP_HF_TrueThings_newMasks.mat')
 new.object = performanceAnalysis(result);
 
 
-%% 
-
+% display the performance 
 disp('Old masks')
 disp('Face')
 disp(old.face)
@@ -34,8 +33,7 @@ disp(new.place)
 disp('Object')
 disp(new.object)
 
-
-%% 
+%
 fprintf('\n')
 fprintf('Accuracy\n')
 fprintf('\told masks \t new masks\n')

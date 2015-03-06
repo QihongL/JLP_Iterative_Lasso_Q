@@ -100,26 +100,26 @@ temp3 = nanmean(d3(:));
 fprintf('d prime \t%f\t %f\t %f \n', temp1,temp2,temp3);
 
 
-results.subjectID = subject;
-results.accuracy.wholeBrain = wholeBrain.accuracy;
-results.accuracy.noFace = noFace.accuracy;
-results.accuracy.faceOnly = faceOnly.accuracy;
-results.dprime.wholeBrain = d1;
-results.dprime.noFace = d2;
-results.dprime.faceOnly = d3;
-
-save('results', 'newMasksResults')
-
-filename = ('newMasks_dPrime_wholeBrain.csv');
-csvwrite(filename, [subject' d1])
-filename = ('newMasks_dPrime_noFace.csv');
-csvwrite(filename, [subject' d2])
-filename = ('newMasks_dPrime_faceOnly.csv');
-csvwrite(filename, [subject' d3])
-filename = ('newMasks_accuracy_wholeBrain.csv');
-csvwrite(filename, [subject' wholeBrain.accuracy])
-filename = ('newMasks_accuracy_noFace.csv');
-csvwrite(filename, [subject' noFace.accuracy])
-filename = ('newMasks_accuracy_faceOnly.csv');
-csvwrite(filename, [subject' faceOnly.accuracy])
+% results.subjectID = subject;
+% results.accuracy.wholeBrain = wholeBrain.accuracy;
+% results.accuracy.noFace = noFace.accuracy;
+% results.accuracy.faceOnly = faceOnly.accuracy;
+% results.dprime.wholeBrain = d1;
+% results.dprime.noFace = d2;
+% results.dprime.faceOnly = d3;
+% 
+% save('results', 'newMasksResults')
+% 
+% filename = ('newMasks_dPrime_wholeBrain.csv');
+% csvwrite(filename, [subject' d1])
+% filename = ('newMasks_dPrime_noFace.csv');
+% csvwrite(filename, [subject' d2])
+% filename = ('newMasks_dPrime_faceOnly.csv');
+% csvwrite(filename, [subject' d3])
+% filename = ('newMasks_accuracy_wholeBrain.csv');
+% csvwrite(filename, [subject' wholeBrain.accuracy])
+% filename = ('newMasks_accuracy_noFace.csv');
+% csvwrite(filename, [subject' noFace.accuracy])
+% filename = ('newMasks_accuracy_faceOnly.csv');
+% csvwrite(filename, [subject' faceOnly.accuracy])
 

@@ -23,4 +23,3 @@ dPrimeMatrix = norminv(hitMatrix) - norminv(falseMatrix);
 dPrimeMatrix(isnan(dPrimeMatrix)) = VERY_SMALL_NUM;
 
 end
-

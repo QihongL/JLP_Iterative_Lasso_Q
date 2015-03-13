@@ -1,12 +1,3 @@
-%% Find Voxel Size
-% This script is trying to figure out what is the appropriate resolution for 
-% for a voxel, which is needed for doing some basic analysis with the new hand 
-% constructed masks  The resolution is obtained based on the XYZs for all subjects
-% and all Kanwisher's parcels (face, place, object). 
-% 
-% related function: test_coordinates()
-%
-% modified Mar. 6
 clear; clc
 
 % get the data path
@@ -47,7 +38,3 @@ for i = 1:length(allFiles);
     XYZ{i} = xyz(:,1:3);
 end
 
-% figure out a good resolution
-test_coordinates(XYZ,3,3,3.5)
-
-%% Conclusion we decided to choose [X, Y, Z] = [3, 3, 3.5] 

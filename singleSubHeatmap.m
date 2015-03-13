@@ -7,7 +7,7 @@ function [heatmap] = singleSubHeatmap(subNum, label)
 %% prep 
 
 % load the data
-load('jlp_metadata.mat')
+load('/Users/lcnl/Documents/MATLAB/JLP/data/jlp_metadata.mat')
 
 % set the parameters 
 type = 'HF'; % only looking at HF solution 

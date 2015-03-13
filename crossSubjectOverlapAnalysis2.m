@@ -16,7 +16,7 @@ writeToTextFile = false;
 %% Prepare data, constants, variables
 
 % Get number of voxel for each subject
-DATA_PATH = '../data';
+DATA_PATH = '/Users/lcnl/Documents/MATLAB/JLP/data';
 load(fullfile(DATA_PATH,'jlp_metadata.mat'));
 SUB_VOXEL = NaN(10,1);
 for subNum = 1:10

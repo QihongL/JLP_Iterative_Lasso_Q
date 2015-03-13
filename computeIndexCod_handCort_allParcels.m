@@ -13,10 +13,10 @@ load(fullfile(OLD_METADATA_PATH, 'jlp_metadata.mat'));
 load(fullfile(HANDCONS_XYZ, 'commonGrid_handCort_allParcels.mat'));
 
 % CONSTANTS
-NUMSUBJ = 10;   % number of subjects for JLP data 
-NUMFACE = 6;    % number of face parcels 
-NUMPLACE = 6;   % number of palce parcels
-NUMOBJ = 2;     % number of object parcels 
+% NUMSUBJ = 10;   % number of subjects for JLP data 
+% NUMFACE = 6;    % number of face parcels 
+% NUMPLACE = 6;   % number of palce parcels
+% NUMOBJ = 2;     % number of object parcels 
 
 
 %% GET IJK
@@ -44,12 +44,12 @@ for i = 1: size(XYZ,1)
 end
 
 
-subjectMetadata = cell(NUMSUBJ,1);
-faceMetadata = cell(NUMFACE,1);
-placeMetadata = cell(NUMPLACE,1);
-objectMetadata = cell(NUMOBJ,1);
+% subjectMetadata = cell(NUMSUBJ,1);
+% faceMetadata = cell(NUMFACE,1);
+% placeMetadata = cell(NUMPLACE,1);
+% objectMetadata = cell(NUMOBJ,1);
 
-
+save('XYZIJK_handCons_parcels', 'allMetadata')
 disp('done')
 
 

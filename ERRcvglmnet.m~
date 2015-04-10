@@ -5,7 +5,7 @@
 % the lambda that leads to the biggest postive difference between hit rate
 % and false alarm rate. 
 % 
-% the parameters required are similar to cvglmnet
+% the parameters requiredare similar to cvglmnet
 
 function [ bestLambda ] = ERRcvglmnet( Xtrain, Ytrain, K, fold_id )
 

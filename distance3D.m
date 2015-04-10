@@ -1,4 +1,5 @@
 %% Calculate amount of voxels within certain radius
+% This function 
 
 function [proportionAll, proportionMean, subjectOverlapHeatMap, selectedCod]...
     = distance3D(lowerBound, r, label)
@@ -7,13 +8,13 @@ function [proportionAll, proportionMean, subjectOverlapHeatMap, selectedCod]...
 % proportionMean 
 
 
+
 % We are more interested in HF
 type = 'HF';
 % load the tlrc coordinates
 load('jlp_metadata.mat')
 % Get the number of subject
 nSub = size({metadata.xyz_tlrc},2);
-
 
 %% Find voxels that were selected, and their coordinates  
 

@@ -16,8 +16,6 @@ function [ accuracy ] = GLMNET( data, label, choice )
         opts.alpha = 0;       
     end
     
-    
-
     % Fit lasso with cv
     fitObj_cv = cvglmnet(data,label,'binomial', opts, 'class',9,fold_id');
     % Pick the best lambda

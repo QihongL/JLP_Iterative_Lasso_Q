@@ -1,21 +1,19 @@
+% This function get the BETAs using the output of iterativeLasso 
+% @param: subNum - the subject id
+% @param: cv - the cross validation block 
+% @param: label - face, place or object (in the JLP context)
+% @param: type - ERR or HF? (specific to our way of storing the iterLasso results)
 function [beta, intercept] = getBeta( subNum, cv, label, type ) 
 
-    % Set some parameters
-    % type = 'ERR';
-    % label = 'TrueFaces';
-    % subNum = 1;
-    % cv = 1;
+    % CONSTANTS
     STOPPING_RULE = 1;
-
-
     % load the data
     load(['fitStore_' type '.mat'])
     load(['JLP_' type '_' label '.mat'])
 
-    % get the weights
+    % get the weights (BETA)
     intercept = fitStore.(label)(subNum).cv(cv).a0;
     finalBeta = fitStore.(label)(subNum).cv(cv).beta;
-
     % determine the iteration number 
     iterNum = size(result(subNum).used, 2) - STOPPING_RULE;
 

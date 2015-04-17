@@ -1,6 +1,9 @@
-function [MRIDATA,MRIMETA] = loadMRIData(experiment,subject) 
+% This function loads fMRI data for a project
 
+
+function [MRIDATA,MRIMETA] = loadMRIData(experiment,subject) 
     switch experiment
+        % load the jlp data (with old mask)
         case 'jlp'
             DATA_PATH = '../data';
             DATA_FILE = sprintf('jlp%02d.mat',subject);
@@ -9,7 +12,7 @@ function [MRIDATA,MRIMETA] = loadMRIData(experiment,subject)
             MRIDATA=X;
             MRIMETA = metadata;
             
-            
+        % load the jlp data (with new mask)
         case 'jlp_newmasks'
             DATA_PATH = '../data';
             DATA_FILE = sprintf('selectedFunctionalData/jlp%02d_hc_X_conds.mat',subject);

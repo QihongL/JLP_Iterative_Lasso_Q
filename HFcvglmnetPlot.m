@@ -1,3 +1,11 @@
+% This function generate the lamda tunning curve. In particular, it plot
+% the performance in terms of hit rate and false alarm rate against lamda
+% values. This is useful when you want to make a decision on which lamda to
+% use. 
+
+% this function was used in the iterative lasso procedure to inform lamda
+% tunning procedure. 
+
 function [  ] = HFcvglmnetPlot( hitRate, falseRate, difference )
 %   This function plot the hit rate, false alarm rate, and their difference
     
